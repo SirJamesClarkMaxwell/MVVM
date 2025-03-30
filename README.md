@@ -79,15 +79,6 @@ To add a new module:
 
 ---
 
-## 📚 Technologies Used
-
-- [imgui_bundle](https://github.com/pthom/imgui_bundle)
-- [`attrs`](https://www.attrs.org/)
-- `pandas`
-- `abc` (for interface-style programming)
-
----
-
 ## 🧠 Design Philosophy
 
 - Separation of concerns (MVVM)
