@@ -1,0 +1,104 @@
+```markdown
+# 🧪 Python MVVM ImGui Template
+
+A modern, minimal Python MVVM (Model-View-ViewModel) application template using
+[imgui_bundle](https://github.com/pthom/imgui_bundle) for GUI rendering.
+
+---
+
+## 🚀 Features
+
+- ✨ Clean MVVM architecture
+- 📊 Example: interactive calculator panel
+- 🔍 Data modeling with [`attrs`](https://www.attrs.org/)
+- 🧵 Background processing with thread pool
+- 📁 File dialog and CSV support
+- 🧱 ImGui docking and multi-panel layout
+
+---
+
+## 🧰 Requirements
+
+- Python ≥ 3.9
+- Recommended: use a virtual environment
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+---
+
+## ▶️ Running the App
+
+```bash
+python main.py
+```
+
+Make sure you're in the project root directory, and the virtual environment (if any) is activated.
+
+---
+
+## 📦 Project Structure
+
+```
+.
+├── app.py                   # App manager & setup
+├── main.py                  # App entry point
+├── data/                    # Holds global data
+├── models/                  # Business logic
+├── viewmodels/              # binds panel and logic
+├── views/
+├── utils/
+│   ├── file_dialog.py       # File dialog controller
+│   ├── logger.py            # Logging wrapper
+│   └── thread_pool.py       # Async task management
+```
+
+---
+
+## 🧪 Calculator Panel
+
+An example panel that supports:
+- Float inputs (`a`, `b`)
+- Operator selection (`+`, `-`, `*`, `/`, `^`)
+- Live computation via ViewModel
+- CSV loading capability
+
+---
+
+## 🛠️ Extending the Template
+
+To add a new module:
+
+1. Create a data model in `data/`
+2. Implement business logic in `models/`
+3. Write a ViewModel in `viewmodels/`
+4. Create a Panel view in `views/`
+5. Register it inside `App.setup_panels()`
+
+---
+
+## 📚 Technologies Used
+
+- [imgui_bundle](https://github.com/pthom/imgui_bundle)
+- [`attrs`](https://www.attrs.org/)
+- `pandas`
+- `abc` (for interface-style programming)
+
+---
+
+## 🧠 Design Philosophy
+
+- Separation of concerns (MVVM)
+- Easy to extend with new panels
+- Async-safe design
+- Clean and modular Python
+
+---
+
+## 👨‍💻 Author
+
+Built by [SirJamesClarkMaxwell](https://github.com/SirJamesClarkMaxwell)
+
+---
