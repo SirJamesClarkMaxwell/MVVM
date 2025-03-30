@@ -1,4 +1,4 @@
-```markdown
+
 # 🧪 Python MVVM ImGui Template
 
 A modern, minimal Python MVVM (Model-View-ViewModel) application template using
@@ -101,4 +101,3 @@ To add a new module:
 
 Built by [SirJamesClarkMaxwell](https://github.com/SirJamesClarkMaxwell)
 
----
