@@ -90,7 +90,7 @@ class App:
 
         log_window = hello_imgui.DockableWindow()
         log_window.label = "Logs"
-        log_window.dock_space_name = "MiscSpace"
+        log_window.dock_space_name = "MainDockSpace"
         log_window.gui_function = hello_imgui.log_gui
         self.dockable_windows.append(log_window)
 
