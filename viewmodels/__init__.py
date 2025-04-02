@@ -1,2 +1,2 @@
-from .view_model import ViewModel
+from .view_model import ViewModel,DevConsoleViewModel
 from .calculator_ViewModel import CalculatorViewModel
