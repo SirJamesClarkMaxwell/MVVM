@@ -5,7 +5,7 @@ from utils.thread_pool import Task, ThreadPool
 
 from data import ApplicationData, Data, CalculatorData
 from models import Model, CalculatorModel
-from views import Panel, CalculatorPanel,DevConsolePanel
+from views import Panel, CalculatorPanel,DevToolsPanel
 from viewmodels import ViewModel, CalculatorViewModel,DevConsoleViewModel
 
 import inspect
@@ -49,12 +49,10 @@ class App:
             CalculatorData(),
         )
         self.register_panel(
-    "Dev Console",
-    DevConsolePanel,
-    lambda model, data: DevConsoleViewModel(model, data, app=self),  # pass App
-    Model(),
-    Data()
-)
+            "DevTools",
+            DevToolsPanel,
+            lambda m, d: DevConsoleViewModel(m, d, app=self),
+        )
 
 
     def render_panel(self, name):
