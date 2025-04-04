@@ -5,12 +5,10 @@ from utils.thread_pool import Task, ThreadPool
 
 from data import ApplicationData, Data, CalculatorData
 from models import Model, CalculatorModel
-from views import Panel, CalculatorPanel,DevToolsPanel
-from viewmodels import ViewModel, CalculatorViewModel,DevConsoleViewModel
+from views import Panel, CalculatorPanel, ScriptsPanel
+from viewmodels import ViewModel, CalculatorViewModel, ScriptsViewModel
 
 import inspect
-
-
 
 
 class App:
@@ -28,7 +26,7 @@ class App:
         self.vm_store = {}  # optional: {"calculator": vm, ...}
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
-        
+
     def initialize(self):
         AppLogger.get().info("🚀 Initializing App")
 
@@ -38,7 +36,7 @@ class App:
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
         return runner_params
-    
+
     def setup_panels(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
         self.register_panel(
@@ -50,10 +48,9 @@ class App:
         )
         self.register_panel(
             "DevTools",
-            DevToolsPanel,
-            lambda m, d: DevConsoleViewModel(m, d, app=self),
+            ScriptsPanel,
+            lambda m, d: ScriptsViewModel(m, d, app=self),
         )
-
 
     def render_panel(self, name):
         self.handle_shortcuts()
@@ -112,7 +109,7 @@ class App:
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
         )
         return params
-    
+
     def register_panel(
         self,
         name: str,
@@ -125,5 +122,4 @@ class App:
         vm = viewmodel_cls(model, view_data)
         panel = view_cls(vm)
         self.vm_store[name] = vm
-        self.panels[name] =  panel
-            
+        self.panels[name] = panel

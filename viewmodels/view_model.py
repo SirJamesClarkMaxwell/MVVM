@@ -8,9 +8,3 @@ from data.data import Data
 class ViewModel(ABC):
     model: Model
     data: Data
-    
-@attr.s(auto_attribs=True)
-class DevConsoleViewModel(ViewModel):
-    model: Model = None
-    data: Data = None
-    app: any = None
