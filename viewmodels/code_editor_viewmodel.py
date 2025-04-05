@@ -1,40 +1,35 @@
 import traceback
 from viewmodels import ViewModel
 from models.code_editor_model import CodeEditorModel
-from data.code_editor_data import CodeEditorData
+from data.code_editor_data import CodeEditorData,ScriptTab
+from utils.logger import AppLogger
+
+from imgui_bundle import imgui_color_text_edit,imgui
+
+class EditorUI:
+    def __init__(self, content: str):
+        TextEditor = imgui_color_text_edit.TextEditor
+        self.editor = TextEditor()
+        self.editor.set_language_definition(TextEditor.LanguageDefinition.python())
+        self.editor.set_show_whitespaces(False)
+        self.editor.set_tab_size(4)
+        self.editor.set_text(content)
+
+    def update_model(self) -> str:
+        return self.editor.get_text()
+
+    def render(self, label: str, size):
+        self.editor.render("ScriptEditor", a_size=imgui.get_content_region_avail())
 
 
 class CodeEditorViewModel(ViewModel):
-    def __init__(self, model=None, data=None, app=None):
+    def __init__(self, model=None, data=None,app = None):
         super().__init__(model or CodeEditorModel(), data or CodeEditorData())
-        self.app = app
-        self.scope = {
-            "app": self.app,
-            "vm_store": self.app.vm_store,
-            "imgui": __import__("imgui_bundle").imgui,
-            "print": self.capture_output,
-        }
+        self.editors: dict[str, (EditorUI,ScriptTab)] = {}
 
-    def capture_output(self, *args):
-        self.data.output_log += " ".join(str(a) for a in args) + "\n"
+    def open_script(self, path: str,content:str):
+        content = self.model.read_file(path)
+        name = path.split("/")[-1]
+        self.data.current_tab_name = name
+        self.editors[name] = (EditorUI(content),ScriptTab(name, content))
 
-    def refresh_script_list(self):
-        self.data.script_list = self.model.list_scripts()
-
-    def load_script(self, name):
-        self.data.editor_content = self.model.load_script(name)
-        self.data.code = self.data.editor_content
-
-    def run_editor_script(self):
-        try:
-            self.data.output_log = ""
-            self.model.run_code(self.data.editor_content, self.scope)
-        except Exception:
-            self.data.output_log = traceback.format_exc()
-
-    def run_console_code(self):
-        try:
-            self.data.exec_result = ""
-            self.model.run_code(self.data.code, self.scope)
-        except Exception:
-            self.data.exec_result = traceback.format_exc()

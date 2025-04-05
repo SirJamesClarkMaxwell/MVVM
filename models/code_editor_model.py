@@ -7,6 +7,15 @@ class CodeEditorModel:
         if not os.path.exists(self.script_dir):
             os.makedirs(self.script_dir)
 
+    def read_file(self, path: str) -> str:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+
+    def write_file(self, path: str, content: str):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+            
+            
     def list_scripts(self):
         return [f for f in os.listdir(self.script_dir) if f.endswith(".py")]
 

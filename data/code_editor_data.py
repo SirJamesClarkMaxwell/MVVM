@@ -1,13 +1,16 @@
 import attr
 from data import Data
+from typing import Optional
+
+@attr.s(auto_attribs=True)
+class ScriptTab:
+    filename: str
+    content: str
+    output:Optional[str]=""
+    is_dirty: bool = False
 
 
 @attr.s(auto_attribs=True)
 class CodeEditorData(Data):
-    selected_script: str = None
-    editor_content: str = ""
-    output_log: str = ""
-    code: str = ""
-    exec_result: str = ""
-    script_list: list[str] = attr.Factory(list)
-    code_space_factor:float = 0.75
+    current_tab_name: str = "Unknown Script"
+

@@ -14,8 +14,8 @@ class TerminalPanel(Panel):
                 imgui.set_scroll_here_y(1.0)
 
         # Command input
-        if imgui.is_window_focused():
-            imgui.set_keyboard_focus_here()
+        # if imgui.is_window_focused():
+        #     imgui.set_keyboard_focus_here()
         changed, self.view_model.data.terminal_input = imgui.input_text(
         ">>>###TerminalInput",
             self.view_model.data.terminal_input,
