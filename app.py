@@ -48,7 +48,7 @@ class App:
         )
         self.register_panel(
             "DevTools",
-            ScriptsPanel,
+            CodeEditorPanel,
             lambda m, d: CodeEditorViewModel(m, d, app=self),
         )
         self.register_panel(

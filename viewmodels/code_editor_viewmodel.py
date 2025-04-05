@@ -1,12 +1,12 @@
 import traceback
 from viewmodels import ViewModel
 from models.code_editor_model import CodeEditorModel
-from data.code_editor_data import CodeEditor
+from data.code_editor_data import CodeEditorData
 
 
 class CodeEditorViewModel(ViewModel):
     def __init__(self, model=None, data=None, app=None):
-        super().__init__(model or CodeEditorModel(), data or CodeEditor())
+        super().__init__(model or CodeEditorModel(), data or CodeEditorData())
         self.app = app
         self.scope = {
             "app": self.app,

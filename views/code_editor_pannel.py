@@ -3,20 +3,23 @@ from views import Panel
 from utils.logger import AppLogger
 
 
-class ScriptsPanel(Panel):
+class CodeEditorPanel(Panel):
     def __init__(self, view_model):
         super().__init__(view_model)
         self.editor = self.create_editor()
+
     def render(self):
         # with imgui_ctx.begin("DevTools"):
         avail_x, avail_y = imgui.get_content_region_avail()
         imgui.dock_space(
-            imgui.get_id("ScriptsDock"), imgui.ImVec2(avail_x, avail_y / 2)
+            imgui.get_id("ScriptsDock"), imgui.ImVec2(avail_x, avail_y * self.view_model.data.code_space_factor)
         )
         if imgui.begin("Script Dock", True):
             if self.view_model.data.editor_content != self.editor.get_text():
                 self.editor.set_text(self.view_model.data.editor_content)
-            self.editor.render("ScriptEditor",False, imgui.ImVec2(imgui.get_content_region_avail()))
+            self.editor.render(
+                "ScriptEditor", False, imgui.ImVec2(imgui.get_content_region_avail())
+            )
 
             # Save updated code back to the data model
             self.view_model.data.editor_content = self.editor.get_text()
@@ -41,7 +44,6 @@ class ScriptsPanel(Panel):
                 self.view_model.data.selected_script = script
                 self.view_model.load_script(script)
                 AppLogger.get().debug(f"{self.view_model.data.selected_script=}")
-                AppLogger.get().debug(f"{self.view_model.data.code=}")
 
         if imgui.button("Refresh List"):
             self.view_model.refresh_script_list()
@@ -56,7 +58,9 @@ class ScriptsPanel(Panel):
         if imgui.button("Run Script") and self.view_model.data.code is not "":
             self.view_model.run_editor_script()
             AppLogger.get().debug("Run Code button has been clicked")
-
+        imgui.same_line()
+        changed, self.view_model.data.code_space_factor = imgui.slider_float("Code Space Factor",self.view_model.data.code_space_factor,0.1,0.9)
+        #TODO move this to App settings
         imgui.separator()
 
         imgui.text("Output")
@@ -71,10 +75,9 @@ class ScriptsPanel(Panel):
         imgui.end_child()
 
     def create_editor(self):
-        from imgui_bundle import imgui, imgui_color_text_edit as ed, imgui_md
-        TextEditor = ed.TextEditor
-        ed = imgui_color_text_edit.TextEditor()
-        ed.set_language_definition(TextEditor.LanguageDefinition.python())
-        ed.set_show_whitespaces(False)
-        ed.set_tab_size(4)
-        return ed
+        TextEditor = imgui_color_text_edit.TextEditor
+        editor = TextEditor()
+        editor.set_language_definition(TextEditor.LanguageDefinition.python())
+        editor.set_show_whitespaces(False)
+        editor.set_tab_size(4)
+        return editor
