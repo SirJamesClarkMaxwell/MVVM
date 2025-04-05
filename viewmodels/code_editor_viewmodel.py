@@ -1,17 +1,18 @@
 import traceback
 from viewmodels import ViewModel
-from models.scripts_model import ScriptsModel
-from data.scripts_data import ScriptsData
+from models.code_editor_model import CodeEditorModel
+from data.code_editor_data import CodeEditor
 
-class ScriptsViewModel(ViewModel):
+
+class CodeEditorViewModel(ViewModel):
     def __init__(self, model=None, data=None, app=None):
-        super().__init__(model or ScriptsModel(), data or ScriptsData())
+        super().__init__(model or CodeEditorModel(), data or CodeEditor())
         self.app = app
         self.scope = {
             "app": self.app,
             "vm_store": self.app.vm_store,
             "imgui": __import__("imgui_bundle").imgui,
-            "print": self.capture_output
+            "print": self.capture_output,
         }
 
     def capture_output(self, *args):

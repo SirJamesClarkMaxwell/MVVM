@@ -1,4 +1,5 @@
 from .data import Data
 from .calculator_data import CalculatorData
-from .scripts_data import ScriptsData
+from .code_editor_data import CodeEditor
 from .application_data import ApplicationData
+from .terminal_data import TerminalData

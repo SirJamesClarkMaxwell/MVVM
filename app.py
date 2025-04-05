@@ -3,10 +3,10 @@ from utils.logger import AppLogger
 from utils.file_dialog import FileDialogController
 from utils.thread_pool import Task, ThreadPool
 
-from data import ApplicationData, Data, CalculatorData
-from models import Model, CalculatorModel
-from views import Panel, CalculatorPanel, ScriptsPanel
-from viewmodels import ViewModel, CalculatorViewModel, ScriptsViewModel
+from data import *
+from models import *
+from views import *
+from viewmodels import *
 
 import inspect
 
@@ -49,7 +49,10 @@ class App:
         self.register_panel(
             "DevTools",
             ScriptsPanel,
-            lambda m, d: ScriptsViewModel(m, d, app=self),
+            lambda m, d: CodeEditorViewModel(m, d, app=self),
+        )
+        self.register_panel(
+            "Terminal", TerminalPanel, lambda model, data: TerminalViewModel(app=self)
         )
 
     def render_panel(self, name):
