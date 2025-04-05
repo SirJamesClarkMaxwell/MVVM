@@ -1,8 +1,9 @@
 import attr
 from data import Data
 
+
 @attr.s(auto_attribs=True)
-class ScriptsData(Data):
+class CodeEditor(Data):
     selected_script: str = None
     editor_content: str = ""
     output_log: str = ""

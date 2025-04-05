@@ -1,6 +1,7 @@
 import os
 
-class ScriptsModel:
+
+class CodeEditorModel:
     def __init__(self, script_dir="Scripts"):
         self.script_dir = script_dir
         if not os.path.exists(self.script_dir):
