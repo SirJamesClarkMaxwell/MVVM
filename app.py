@@ -1,4 +1,5 @@
-from imgui_bundle import hello_imgui, imgui, im_file_dialog
+from imgui_bundle import  imgui, im_file_dialog,hello_imgui
+# import hello_imgui
 from utils.logger import AppLogger
 from utils.file_dialog import FileDialogController
 from utils.thread_pool import Task, ThreadPool
@@ -26,6 +27,7 @@ class App:
         self.vm_store = {}  # optional: {"calculator": vm, ...}
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
+
 
     def initialize(self):
         AppLogger.get().info("🚀 Initializing App")
@@ -69,20 +71,28 @@ class App:
                 AppLogger.get().info(f"✅ Loaded CSV: {result.shape[0]} rows")
 
     def on_file_selected(self, path: str):
-        model = self.vm_store["Calculator"].model
-        task = self.thread_pool.submit("Load CSV", model.load_csv, path)
-        self.pending_model_task = task
-        AppLogger.get().info(f"📂 Selected: {path}")
+        try:
+            with open(path, encoding="utf8") as f:
+                content = f.read()
+            editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
+            editor_vm.open_script(path, content)
+            AppLogger.get().info(f"📂 Opened in editor: {path}")
+        except Exception as e:
+            AppLogger.get().error(f"❌ Failed to open {path}: {e}")
 
     def handle_shortcuts(self):
         io = imgui.get_io()
-        ctrl_pressed = io.key_ctrl
-        # AppLogger.get().debug(
-        #     f"{inspect.currentframe().f_code.co_name}: ctrl {"Pressed" if ctrl_pressed else "Not Pressed"}"
-        # )
-        if ctrl_pressed and imgui.is_key_pressed(imgui.Key.o, repeat=False):
-            AppLogger.get().info("Ctrl+O pressed – opening file dialog")
-            self.file_dialog.open()
+
+        self.last_shortcut_frame = getattr(self, "last_shortcut_frame", -1)
+
+        if io.key_ctrl and imgui.is_key_pressed(imgui.Key.o, repeat=False):
+            current_frame = imgui.get_frame_count()
+            if current_frame != self.last_shortcut_frame:
+                self.last_shortcut_frame = current_frame
+                self.file_dialog.open()
+                AppLogger.get().info("Ctrl+O pressed – opening file dialog")
+
+
 
     def create_dockable_windows(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")

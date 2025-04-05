@@ -4,6 +4,7 @@ class FileDialogController:
     def __init__(self):
         self.open_file_handle = None
         self.result_callback = lambda x: print(f"Result: {x}")  # Default callback
+        
 
     def open(self, title="Select File", multiselect=True):
         options = pfd.opt.multiselect if multiselect else pfd.opt.none
