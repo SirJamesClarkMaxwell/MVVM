@@ -64,7 +64,10 @@ class CodeEditorPanel(Panel):
         # Clear Button
         if imgui.button("Clear"):#, imgui.ImVec2(-1, 24)):
             self.view_model.clear_output()
-
+        imgui.same_line()
+        
+        if imgui.button("Reload Script Panles"):
+            self.view_model.app.reload_script_panels()
 
     def close_script_tab_actions(self):
         name = self.view_model.confirming_close_name

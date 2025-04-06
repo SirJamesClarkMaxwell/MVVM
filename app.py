@@ -10,7 +10,7 @@ from models import *
 from views import *
 from viewmodels import *
 
-import inspect
+import inspect,os
 
 
 class App:
@@ -36,6 +36,8 @@ class App:
         self.setup_panels()
         self.create_dockable_windows()
 
+        # ✅ Automatically load live_plot.py into DevTools
+        self.initialize_app_state()
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
         return runner_params
@@ -99,8 +101,6 @@ class App:
                 self.file_dialog.open()
                 AppLogger.get().info("Ctrl+O pressed – opening file dialog")
 
-
-
     def create_dockable_windows(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
         for label, _ in self.panels.items():
@@ -145,4 +145,31 @@ class App:
         self.vm_store[name] = vm
         self.panels[name] = panel
 
+    def reload_script_panels(self):
+        editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
+        new_panels = editor_vm.reload_script_panels()
 
+        # Remove old dynamic panels
+        for key in list(self.panels):
+            if key.startswith("script:"):
+                del self.panels[key]
+
+        self.panels.update(new_panels)
+
+        AppLogger.get().info(f"🔁 Script panels reloaded: {len(new_panels)} added")
+
+    def initialize_app_state(self):
+        try:
+            editor_vm = self.vm_store.get("DevTools")  # or "CodeEditor" if renamed
+            if editor_vm:
+                path = os.path.join(os.path.abspath(os.path.curdir),"Scripts", "live_plot.py")
+                if os.path.exists(path):
+                    content = ""
+                    with open(path,"r") as f:
+                        content = f.read()
+                    editor_vm.open_script(path,content)
+                    AppLogger.get().info(f"📂 Loaded script: {path}")
+                else:
+                    AppLogger.get().warning(f"⚠️ Script not found: {path}")
+        except Exception as e:
+            AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
