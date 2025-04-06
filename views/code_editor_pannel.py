@@ -33,14 +33,11 @@ class CodeEditorPanel(Panel):
             imgui.separator()
             imgui.text("Output:")
 
-            with imgui_ctx.begin_child(
-                "EditorOutput", imgui.ImVec2(-1, 100), imgui.ChildFlags_.borders
-            ):
-                if self.view_model.editors.get(self.view_model.data.current_tab_name):
-                    (current_editor, current_tab) = self.view_model.editors[
-                        self.view_model.data.current_tab_name
-                    ]
-                    imgui.text_wrapped(current_tab.output or "No output yet.")
+            with imgui_ctx.begin_child("EditorOutput", imgui.ImVec2(-1, 100), imgui.ChildFlags_.borders):
+                if (current := self.view_model.editors.get(self.view_model.data.current_tab_name)):
+                    _, tab = current
+                    imgui.text_wrapped(tab.output or "No output yet.")
+
 
             imgui.end_table()
 
@@ -53,15 +50,19 @@ class CodeEditorPanel(Panel):
             imgui.end_popup()
 
     def render_code_actions(self):
-        if imgui.button("▶ Run Current Script"):
+        data = self.view_model.app.application_data
+        if imgui.button("Run"):#, imgui.ImVec2(-1, 24)):
             self.view_model.run_current_script()
-
+            
         imgui.same_line()
-        if imgui.button("🔁 Reload Script"):
+
+        # Reload Button
+        if imgui.button("Reload"):#, imgui.ImVec2(-1, 24)):
             self.view_model.reload_current_script()
-
         imgui.same_line()
-        if imgui.button("❌ Clear Output"):
+
+        # Clear Button
+        if imgui.button("Clear"):#, imgui.ImVec2(-1, 24)):
             self.view_model.clear_output()
 
 

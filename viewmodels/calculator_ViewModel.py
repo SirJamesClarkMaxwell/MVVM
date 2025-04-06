@@ -12,9 +12,8 @@ import attr
 
 @attr.s(auto_attribs=True)
 class CalculatorViewModel(ViewModel):
-    model:  CalculatorModel
-    data:  CalculatorData
-
+    def __init__(self,model,data,app)->None:
+        super().__init__(model or CalculatorModel(), data or CalculatorData,app)
     def compute(self):
         self.data.result = self.model.evaluate(self.data.a, self.data.b, self.data.operation)
         AppLogger.get().info(f"Computed: {self.data.a} {self.data.operation} {self.data.b} = {self.data.result}")

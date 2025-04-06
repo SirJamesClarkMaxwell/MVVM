@@ -1,4 +1,5 @@
-from imgui_bundle import  imgui, im_file_dialog,hello_imgui
+from imgui_bundle import  imgui, im_file_dialog,hello_imgui,immvision
+from imgui_bundle.immapp import static
 # import hello_imgui
 from utils.logger import AppLogger
 from utils.file_dialog import FileDialogController
@@ -30,7 +31,7 @@ class App:
 
 
     def initialize(self):
-        AppLogger.get().info("🚀 Initializing App")
+        AppLogger.get().info("Initializing App")
 
         self.setup_panels()
         self.create_dockable_windows()
@@ -51,10 +52,16 @@ class App:
         self.register_panel(
             "DevTools",
             CodeEditorPanel,
-            lambda m, d: CodeEditorViewModel(m, d, app=self),
+            CodeEditorViewModel,
+            CodeEditorModel(),
+            CodeEditorData(),
         )
         self.register_panel(
-            "Terminal", TerminalPanel, lambda model, data: TerminalViewModel(app=self)
+            "Terminal", 
+            TerminalPanel, 
+            TerminalViewModel,
+            TerminalModel(),
+            TerminalData(),
         )
 
     def render_panel(self, name):
@@ -68,7 +75,7 @@ class App:
         for task in completed_tasks:
             result = task.result()
             if result is not None:
-                AppLogger.get().info(f"✅ Loaded CSV: {result.shape[0]} rows")
+                AppLogger.get().info(f"Loaded CSV: {result.shape[0]} rows")
 
     def on_file_selected(self, path: str):
         try:
@@ -78,7 +85,7 @@ class App:
             editor_vm.open_script(path, content)
             AppLogger.get().info(f"📂 Opened in editor: {path}")
         except Exception as e:
-            AppLogger.get().error(f"❌ Failed to open {path}: {e}")
+            AppLogger.get().error(f"Failed to open {path}: {e}")
 
     def handle_shortcuts(self):
         io = imgui.get_io()
@@ -114,13 +121,14 @@ class App:
 
     def create_runner_params(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
+
         params = hello_imgui.RunnerParams()
         params.app_window_params.window_title = "MVVM Paradise"
         params.imgui_window_params.enable_viewports = True
-        # params.imgui_window_params.enable_docking = True
         params.imgui_window_params.default_imgui_window_type = (
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
         )
+
         return params
 
     def register_panel(
@@ -132,7 +140,9 @@ class App:
         view_data: Data = None,
     ):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
-        vm = viewmodel_cls(model, view_data)
+        vm = viewmodel_cls(model, view_data,self)
         panel = view_cls(vm)
         self.vm_store[name] = vm
         self.panels[name] = panel
+
+
