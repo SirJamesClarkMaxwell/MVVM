@@ -1,16 +1,16 @@
-from imgui_bundle import  imgui, im_file_dialog,hello_imgui,immvision
+from imgui_bundle import imgui, im_file_dialog, hello_imgui, immvision
 from imgui_bundle.immapp import static
+
 # import hello_imgui
 from utils.logger import AppLogger
 from utils.file_dialog import FileDialogController
 from utils.thread_pool import Task, ThreadPool
-
 from data import *
 from models import *
 from views import *
 from viewmodels import *
 
-import inspect,os
+import inspect, os
 
 
 class App:
@@ -59,8 +59,8 @@ class App:
             CodeEditorData(),
         )
         self.register_panel(
-            "Terminal", 
-            TerminalPanel, 
+            "Terminal",
+            TerminalPanel,
             TerminalViewModel,
             TerminalModel(),
             TerminalData(),
@@ -73,6 +73,8 @@ class App:
             if label == name:
                 panel.render()
                 break
+
+        
         completed_tasks = self.thread_pool.get_completed()
         for task in completed_tasks:
             result = task.result()
@@ -103,12 +105,8 @@ class App:
 
     def create_dockable_windows(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
-        for label, _ in self.panels.items():
-            window = hello_imgui.DockableWindow()
-            window.label = label
-            window.dock_space_name = "MainDockSpace"
-            window.gui_function = lambda label=label: self.render_panel(label)
-            self.dockable_windows.append(window)
+        for label in self.panels.keys():
+            self.add_dockable_window_for_panel(label)
 
         log_window = hello_imgui.DockableWindow()
         log_window.label = "Logs"
@@ -118,6 +116,13 @@ class App:
 
         self.file_dialog = FileDialogController()
         self.file_dialog.result_callback = lambda path: self.on_file_selected(path)
+
+    def add_dockable_window_for_panel(self, label):
+        window = hello_imgui.DockableWindow()
+        window.label = label
+        window.dock_space_name = "MainDockSpace"
+        window.gui_function = lambda label=label: self.render_panel(label)
+        self.dockable_windows.append(window)
 
     def create_runner_params(self):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
@@ -140,34 +145,35 @@ class App:
         view_data: Data = None,
     ):
         AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
-        vm = viewmodel_cls(model, view_data,self)
+        vm = viewmodel_cls(model, view_data, self)
         panel = view_cls(vm)
         self.vm_store[name] = vm
         self.panels[name] = panel
 
-    def reload_script_panels(self):
-        editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
-        new_panels = editor_vm.reload_script_panels()
+    # def reload_script_panels(self):
+    #     editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
+    #     new_panels = editor_vm.reload_script_panels()
 
-        # Remove old dynamic panels
-        for key in list(self.panels):
-            if key.startswith("script:"):
-                del self.panels[key]
+    #     self.update_script_panels(new_panels)  # 👈 Use the refactored method
 
-        self.panels.update(new_panels)
+    #     AppLogger.get().info(f"🔁 Script panels reloaded: {len(new_panels)} added")
 
-        AppLogger.get().info(f"🔁 Script panels reloaded: {len(new_panels)} added")
+    
+
+
 
     def initialize_app_state(self):
         try:
             editor_vm = self.vm_store.get("DevTools")  # or "CodeEditor" if renamed
             if editor_vm:
-                path = os.path.join(os.path.abspath(os.path.curdir),"Scripts", "live_plot.py")
+                path = os.path.join(
+                    os.path.abspath(os.path.curdir), "Scripts", "live_plot.py"
+                )
                 if os.path.exists(path):
                     content = ""
-                    with open(path,"r") as f:
+                    with open(path, "r") as f:
                         content = f.read()
-                    editor_vm.open_script(path,content)
+                    editor_vm.open_script(path, content)
                     AppLogger.get().info(f"📂 Loaded script: {path}")
                 else:
                     AppLogger.get().warning(f"⚠️ Script not found: {path}")

@@ -1,12 +1,13 @@
-import io, os, traceback,  contextlib
+import io, os, traceback, contextlib
 
-from imgui_bundle import imgui_color_text_edit,imgui
+from imgui_bundle import imgui_color_text_edit, imgui
 
 from utils.logger import AppLogger
 from viewmodels import ViewModel
-from models import Model,CodeEditorModel
-from data import Data, CodeEditorData,ScriptTab
-from scripting.script_panel import ScriptPanel
+from models import Model, CodeEditorModel
+from data import Data, CodeEditorData, ScriptTab
+from views.runtime_panel import RuntimePanel
+
 
 class EditorUI:
     def __init__(self, content: str):
@@ -17,31 +18,35 @@ class EditorUI:
         self.editor.set_tab_size(4)
         self.editor.set_text(content)
 
+
     def update_model(self) -> str:
         return self.editor.get_text()
 
     def render(self, label: str, size):
         self.editor.render("ScriptEditor", a_size=imgui.get_content_region_avail())
-    def set_content(self,content:str)->None:
+
+    def set_content(self, content: str) -> None:
         self.editor.set_text(content)
 
+
 class CodeEditorViewModel(ViewModel):
-    def __init__(self, model: Model, data: Data,app):
-        super().__init__(model or CodeEditorModel(), data or CodeEditorData(),app)
-        self.editors: dict[str, (EditorUI,ScriptTab)] = {}
+    def __init__(self, model: Model, data: Data, app):
+        super().__init__(model or CodeEditorModel(), data or CodeEditorData(), app)
+        self.editors: dict[str, (EditorUI, ScriptTab)] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None
         self.scope = {
-            "app": app ,
+            "app": app,
             "vm_store": app.vm_store,
-            "log": AppLogger.get(),}
-
-    def open_script(self, path: str,content:str):
+            "log": AppLogger.get(),
+        }
+        self.runtime_panels: dict[str, RuntimePanel] = {}
+    def open_script(self, path: str, content: str):
         content = self.model.read_file(path)
         AppLogger.get().debug(path)
         name = path.split("\\")[-1]
         self.data.current_tab_name = name
-        self.editors[name] = (EditorUI(content),ScriptTab(name,content, path))
+        self.editors[name] = (EditorUI(content), ScriptTab(name, content, path))
 
     def request_close_editor(self, name: str):
         tab = self.editors.get(name)
@@ -119,18 +124,47 @@ class CodeEditorViewModel(ViewModel):
                 AppLogger.get().error(f"[Script Error] '{name}': {e}")
 
         return dynamic_panels
+
+    # def reload_script_panels(self):
+    #     panels = {}
+    #     extracted = self.extract_dynamic_panels()
+
+    #     for panel_title, render_fn in extracted:
+    #         panel_id = f"script:{panel_title}"
+    #         panels[panel_id] = RuntimePanel(panel_title, render_fn)
+
+    #     AppLogger.get().debug(f"✅ Reloaded {len(panels)} script panel(s) from editor")
+    #     AppLogger.get().debug(
+    #         f"Detected panels from scripts: {[title for title, _ in extracted]}"
+    #     )
+    #     return panels
     
-
+    
+    def update_script_panels(self, new_panels: dict[str, RuntimePanel]):
+        # Remove old script panels
+        for key in list(self.runtime_panels):
+            if key.startswith("script:"):
+                del self.runtime_panels[key]
+        # Update only runtime panels — no docking!
+        self.runtime_panels.update(new_panels)
+        AppLogger.get().info(f"🧪 Registered {len(new_panels)} runtime script panels")
+        
     def reload_script_panels(self):
-        panels = {}
-        extracted = self.extract_dynamic_panels()
+        dynamic_panels = {}
 
-        for panel_title, render_fn in extracted:
-            panel_id = f"script:{panel_title}"
-            panels[panel_id] = ScriptPanel(panel_title, render_fn)
+        for name, (editor, tab) in self.editors.items():
+            local_scope = self.scope.copy()
 
-        AppLogger.get().debug(f"✅ Reloaded {len(panels)} script panel(s) from editor")
-        AppLogger.get().debug(f"Detected panels from scripts: {[title for title, _ in extracted]}")
-        return panels
+            try:
+                exec(tab.content, local_scope)
 
+                panel_title = local_scope.get("panel_title", name)
+                render_fn = local_scope.get("render", None)
 
+                if callable(render_fn):
+                    dynamic_panels[f"script:{panel_title}"] = RuntimePanel(panel_title, render_fn)
+
+            except Exception as e:
+                AppLogger.get().error(f"❌ Script panel '{name}' failed to load: {e}")
+
+        self.runtime_panels = dynamic_panels

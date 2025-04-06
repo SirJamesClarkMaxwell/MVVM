@@ -1,7 +1,8 @@
 from utils.logger import AppLogger
 from imgui_bundle import imgui
 
-class ScriptPanel:
+
+class RuntimePanel:
     def __init__(self, title: str, render_func):
         self.title = title
         self.render_func = render_func
