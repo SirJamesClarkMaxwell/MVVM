@@ -1,5 +1,5 @@
 import os
-
+from utils.logger import AppLogger
 
 class CodeEditorModel:
     def __init__(self, script_dir="Scripts"):
@@ -11,7 +11,7 @@ class CodeEditorModel:
         with open(path, encoding="utf-8") as f:
             return f.read()
 
-    def write_file(self, path: str, content: str):
+    def save_file(self, path: str, content: str):
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
             
