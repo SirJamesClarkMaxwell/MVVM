@@ -6,6 +6,7 @@ from typing import Optional
 class ScriptTab:
     filename: str
     content: str
+    filepath:str
     output:Optional[str]=""
     is_dirty: bool = False
 
