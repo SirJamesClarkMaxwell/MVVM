@@ -4,8 +4,7 @@ from models.terminal_model import TerminalModel
 
 class TerminalViewModel(ViewModel):
     def __init__(self, model=None, data=None, app=None):
-        super().__init__(model or TerminalModel(), data or TerminalData())
-        self.app = app
+        super().__init__(model or TerminalModel(), data or TerminalData(),app)
 
     def run_command(self):
         cmd = self.data.terminal_input.strip()

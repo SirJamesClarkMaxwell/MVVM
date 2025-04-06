@@ -1,13 +1,12 @@
-import traceback
-from viewmodels import ViewModel
-from models import Model
-from data import Data
-from models.code_editor_model import CodeEditorModel
-from data.code_editor_data import CodeEditorData,ScriptTab
-from utils.logger import AppLogger
+import io, os, traceback,  contextlib
 
 from imgui_bundle import imgui_color_text_edit,imgui
-import os
+
+from utils.logger import AppLogger
+from viewmodels import ViewModel
+from models import Model,CodeEditorModel
+from data import Data, CodeEditorData,ScriptTab
+
 
 class EditorUI:
     def __init__(self, content: str):
@@ -28,7 +27,7 @@ class EditorUI:
 
 class CodeEditorViewModel(ViewModel):
     def __init__(self, model: Model, data: Data,app):
-        super().__init__(model or CodeEditorModel(), data or CodeEditorData())
+        super().__init__(model or CodeEditorModel(), data or CodeEditorData(),app)
         self.editors: dict[str, (EditorUI,ScriptTab)] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None
@@ -69,13 +68,19 @@ class CodeEditorViewModel(ViewModel):
         name = self.data.current_tab_name
         if name in self.editors:
             editor, tab = self.editors[name]
-            try:
-                self.model.run_code(tab.content, self.scope)
-                tab.output = "[✓] Script executed successfully."
-                AppLogger.get().info(f"Executed script: {name}")
-            except Exception as e:
-                tab.output = f"[X] Error: {e}"
-                AppLogger.get().error(f"Execution error in '{name}': {e}")
+
+            buffer = io.StringIO()
+            local_scope = self.scope.copy()
+
+            with contextlib.redirect_stdout(buffer), contextlib.redirect_stderr(buffer):
+                try:
+                    exec(tab.content, local_scope)
+                    tab.output = buffer.getvalue()
+                    tab.output += "\nScript executed successfully."
+                except Exception:
+                    error_output = traceback.format_exc()
+                    tab.output = buffer.getvalue() + "\n" + error_output
+                    AppLogger.get().error(f"Script error in {name}:\n{error_output}")
 
     def reload_current_script(self):
         name = self.data.current_tab_name
