@@ -6,7 +6,7 @@ from utils.logger import AppLogger
 from viewmodels import ViewModel
 from models import Model,CodeEditorModel
 from data import Data, CodeEditorData,ScriptTab
-
+from scripting.script_panel import ScriptPanel
 
 class EditorUI:
     def __init__(self, content: str):
@@ -100,6 +100,37 @@ class CodeEditorViewModel(ViewModel):
             tab.output = ""
             AppLogger.get().debug(f"Cleared output for {name}")
 
+    def extract_dynamic_panels(self):
+        dynamic_panels = []
 
+        for name, (editor, tab) in self.editors.items():
+            local_scope = self.scope.copy()
+
+            try:
+                exec(tab.content, local_scope)
+
+                panel_title = local_scope.get("panel_title", name)
+                render_fn = local_scope.get("render", None)
+
+                if callable(render_fn):
+                    dynamic_panels.append((panel_title, render_fn))
+
+            except Exception as e:
+                AppLogger.get().error(f"[Script Error] '{name}': {e}")
+
+        return dynamic_panels
+    
+
+    def reload_script_panels(self):
+        panels = {}
+        extracted = self.extract_dynamic_panels()
+
+        for panel_title, render_fn in extracted:
+            panel_id = f"script:{panel_title}"
+            panels[panel_id] = ScriptPanel(panel_title, render_fn)
+
+        AppLogger.get().debug(f"✅ Reloaded {len(panels)} script panel(s) from editor")
+        AppLogger.get().debug(f"Detected panels from scripts: {[title for title, _ in extracted]}")
+        return panels
 
 
