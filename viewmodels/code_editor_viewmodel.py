@@ -18,7 +18,6 @@ class EditorUI:
         self.editor.set_tab_size(4)
         self.editor.set_text(content)
 
-
     def update_model(self) -> str:
         return self.editor.get_text()
 
@@ -125,46 +124,23 @@ class CodeEditorViewModel(ViewModel):
 
         return dynamic_panels
 
-    # def reload_script_panels(self):
-    #     panels = {}
-    #     extracted = self.extract_dynamic_panels()
-
-    #     for panel_title, render_fn in extracted:
-    #         panel_id = f"script:{panel_title}"
-    #         panels[panel_id] = RuntimePanel(panel_title, render_fn)
-
-    #     AppLogger.get().debug(f"✅ Reloaded {len(panels)} script panel(s) from editor")
-    #     AppLogger.get().debug(
-    #         f"Detected panels from scripts: {[title for title, _ in extracted]}"
-    #     )
-    #     return panels
-    
-    
     def update_script_panels(self, new_panels: dict[str, RuntimePanel]):
-        # Remove old script panels
         for key in list(self.runtime_panels):
             if key.startswith("script:"):
                 del self.runtime_panels[key]
-        # Update only runtime panels — no docking!
         self.runtime_panels.update(new_panels)
         AppLogger.get().info(f"🧪 Registered {len(new_panels)} runtime script panels")
         
     def reload_script_panels(self):
         dynamic_panels = {}
-
         for name, (editor, tab) in self.editors.items():
             local_scope = self.scope.copy()
-
             try:
                 exec(tab.content, local_scope)
-
                 panel_title = local_scope.get("panel_title", name)
                 render_fn = local_scope.get("render", None)
-
                 if callable(render_fn):
                     dynamic_panels[f"script:{panel_title}"] = RuntimePanel(panel_title, render_fn)
-
             except Exception as e:
                 AppLogger.get().error(f"❌ Script panel '{name}' failed to load: {e}")
-
         self.runtime_panels = dynamic_panels

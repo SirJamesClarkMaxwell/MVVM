@@ -150,18 +150,6 @@ class App:
         self.vm_store[name] = vm
         self.panels[name] = panel
 
-    # def reload_script_panels(self):
-    #     editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
-    #     new_panels = editor_vm.reload_script_panels()
-
-    #     self.update_script_panels(new_panels)  # 👈 Use the refactored method
-
-    #     AppLogger.get().info(f"🔁 Script panels reloaded: {len(new_panels)} added")
-
-    
-
-
-
     def initialize_app_state(self):
         try:
             editor_vm = self.vm_store.get("DevTools")  # or "CodeEditor" if renamed
