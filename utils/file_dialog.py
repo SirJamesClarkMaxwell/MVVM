@@ -3,7 +3,7 @@ from imgui_bundle import imgui, portable_file_dialogs as pfd
 class FileDialogController:
     def __init__(self):
         self.open_file_handle = None
-        self.result_callback = lambda x: print(f"Result: {x}")  # Default callback
+        self.result_callback = lambda path: print(f"Result: {path}")  # Default callback
         
 
     def open(self, title="Select File", multiselect=True):

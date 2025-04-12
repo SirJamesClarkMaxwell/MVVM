@@ -1,9 +1,8 @@
-from .data import Data
-import attr
+from dataclasses import dataclass, field
 
-@attr.s(auto_attribs=True)
-class TerminalData(Data):
+@dataclass
+class TerminalData:
     terminal_input: str = ""
     terminal_output: str = ""
-    terminal_history: list[str] = attr.Factory(list)
+    terminal_history: list[str] = field(default_factory=list)
     auto_scroll: bool = True

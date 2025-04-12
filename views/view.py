@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
-import attr
-from viewmodels import ViewModel
 
 
-@attr.s
 class Panel(ABC):
-    view_model = attr.ib(type=ViewModel)
+    """Base class for UI panels."""
+
+    def __init__(self, view_model):
+        self.view_model = view_model
 
     @abstractmethod
     def render(self):
+        """Render the panel's UI."""
         pass

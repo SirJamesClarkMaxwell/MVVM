@@ -1,11 +1,12 @@
 import io, os, traceback, contextlib
+from typing import cast
 
 from imgui_bundle import imgui_color_text_edit, imgui
 
 from utils.logger import AppLogger
-from viewmodels import ViewModel
-from models import Model, CodeEditorModel
-from data import Data, CodeEditorData, ScriptTab
+
+from models.code_editor_model import CodeEditorModel
+from data.code_editor_data import  CodeEditorData, ScriptTab
 from views.runtime_panel import RuntimePanel
 
 
@@ -28,10 +29,12 @@ class EditorUI:
         self.editor.set_text(content)
 
 
-class CodeEditorViewModel(ViewModel):
-    def __init__(self, model: Model, data: Data, app):
-        super().__init__(model or CodeEditorModel(), data or CodeEditorData(), app)
-        self.editors: dict[str, (EditorUI, ScriptTab)] = {}
+class CodeEditorViewModel:
+    def __init__(self, app):
+        self.model =  CodeEditorModel()
+        self.data =  CodeEditorData()
+        
+        self.editors: dict[str, tuple[EditorUI, ScriptTab]] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None
         self.scope = {
@@ -40,6 +43,7 @@ class CodeEditorViewModel(ViewModel):
             "log": AppLogger.get(),
         }
         self.runtime_panels: dict[str, RuntimePanel] = {}
+
     def open_script(self, path: str, content: str):
         content = self.model.read_file(path)
         AppLogger.get().debug(path)
@@ -48,11 +52,12 @@ class CodeEditorViewModel(ViewModel):
         self.editors[name] = (EditorUI(content), ScriptTab(name, content, path))
 
     def request_close_editor(self, name: str):
-        tab = self.editors.get(name)
-        if tab and tab.editor.is_dirty:
-            self.confirming_close_name = name  # trigger confirmation popup
-        else:
-            self.force_close_editor(name)
+        if name in self.editors:
+            editor, tab = self.editors[name]
+            if tab.is_dirty:
+                self.confirming_close_name = name
+            else:
+                self.force_close_editor(name)
 
     def force_close_editor(self, name: str):
         if name in self.editors:
@@ -65,8 +70,7 @@ class CodeEditorViewModel(ViewModel):
                 self.model.save_file(tab.filepath, tab.content)
                 tab.is_dirty = False
             else:
-                # Optionally trigger "Save As" dialog here
-                AppLogger.get().warn(f"⚠️ No file path for script '{name}'")
+                AppLogger.get().warning(f"⚠️ No file path for script '{name}'")
 
     def run_current_script(self):
         name = self.data.current_tab_name
@@ -130,7 +134,7 @@ class CodeEditorViewModel(ViewModel):
                 del self.runtime_panels[key]
         self.runtime_panels.update(new_panels)
         AppLogger.get().info(f"🧪 Registered {len(new_panels)} runtime script panels")
-        
+
     def reload_script_panels(self):
         dynamic_panels = {}
         for name, (editor, tab) in self.editors.items():
@@ -140,7 +144,9 @@ class CodeEditorViewModel(ViewModel):
                 panel_title = local_scope.get("panel_title", name)
                 render_fn = local_scope.get("render", None)
                 if callable(render_fn):
-                    dynamic_panels[f"script:{panel_title}"] = RuntimePanel(panel_title, render_fn)
+                    dynamic_panels[f"script:{panel_title}"] = RuntimePanel(
+                        panel_title, render_fn
+                    )
             except Exception as e:
                 AppLogger.get().error(f"❌ Script panel '{name}' failed to load: {e}")
         self.runtime_panels = dynamic_panels

@@ -1,9 +1,10 @@
+from typing import Callable
 from utils.logger import AppLogger
 from imgui_bundle import imgui
 
 
 class RuntimePanel:
-    def __init__(self, title: str, render_func):
+    def __init__(self, title: str, render_func:Callable):
         self.title = title
         self.render_func = render_func
 

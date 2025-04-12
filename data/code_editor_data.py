@@ -1,8 +1,7 @@
-import attr
-from data import Data
+from dataclasses import dataclass
 from typing import Optional
 
-@attr.s(auto_attribs=True)
+@dataclass
 class ScriptTab:
     filename: str
     content: str
@@ -11,7 +10,7 @@ class ScriptTab:
     is_dirty: bool = False
 
 
-@attr.s(auto_attribs=True)
-class CodeEditorData(Data):
+@dataclass
+class CodeEditorData:
     current_tab_name: str = "Unknown Script"
 

@@ -1,10 +1,13 @@
 import os
 from utils.logger import AppLogger
 
+
 class CodeEditorModel:
     def __init__(self, script_dir="Scripts"):
         self.script_dir = script_dir
-        AppLogger.get().debug(f"Initializing CodeEditorModel with script_dir='{script_dir}'")
+        AppLogger.get().debug(
+            f"Initializing CodeEditorModel with script_dir='{script_dir}'"
+        )
         if not os.path.exists(self.script_dir):
             os.makedirs(self.script_dir)
             AppLogger.get().info(f"Created script directory: {self.script_dir}")
@@ -14,7 +17,9 @@ class CodeEditorModel:
         try:
             with open(path, encoding="utf-8") as f:
                 content = f.read()
-            AppLogger.get().debug(f"Successfully read file: {path} ({len(content)} bytes)")
+            AppLogger.get().debug(
+                f"Successfully read file: {path} ({len(content)} bytes)"
+            )
             return content
         except Exception as e:
             AppLogger.get().error(f"Failed to read file '{path}': {e}")
