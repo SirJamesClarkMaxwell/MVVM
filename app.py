@@ -43,27 +43,22 @@ class App:
         return runner_params
 
     def setup_panels(self):
-        AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
+        AppLogger.get().debug(f"Setting up panels")
         self.register_panel(
             "Calculator",
             CalculatorPanel,
-            CalculatorViewModel,
-            CalculatorModel(),
-            CalculatorData(),
+            CalculatorViewModel
+            
         )
         self.register_panel(
             "DevTools",
             CodeEditorPanel,
-            CodeEditorViewModel,
-            CodeEditorModel(),
-            CodeEditorData(),
+            CodeEditorViewModel
         )
         self.register_panel(
             "Terminal",
             TerminalPanel,
-            TerminalViewModel,
-            TerminalModel(),
-            TerminalData(),
+            TerminalViewModel
         )
 
     def render_panel(self, name):
@@ -104,7 +99,7 @@ class App:
                 AppLogger.get().info("Ctrl+O pressed – opening file dialog")
 
     def create_dockable_windows(self):
-        AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
+        AppLogger.get().debug(f"Creating dockable windows")
         for label in self.panels.keys():
             self.add_dockable_window_for_panel(label)
 
@@ -125,8 +120,7 @@ class App:
         self.dockable_windows.append(window)
 
     def create_runner_params(self):
-        AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
-
+        AppLogger.get().debug(f"Creating runner params")
         params = hello_imgui.RunnerParams()
         params.app_window_params.window_title = "MVVM Paradise"
         params.imgui_window_params.enable_viewports = True
@@ -141,11 +135,12 @@ class App:
         name: str,
         view_cls,
         viewmodel_cls,
-        model: Model = None,
-        view_data: Data = None,
     ):
-        AppLogger.get().debug(f"{inspect.currentframe().f_code.co_name}")
-        vm = viewmodel_cls(model, view_data, self)
+        AppLogger.get().debug(f"Registering Panel: {name} with {view_cls.__name__}")
+        if name in self.panels:
+            AppLogger.get().warning(f"Panel '{name}' already exists. Skipping registration.")
+            return
+        vm = viewmodel_cls(self)
         panel = view_cls(vm)
         self.vm_store[name] = vm
         self.panels[name] = panel

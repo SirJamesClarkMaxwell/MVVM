@@ -1,4 +1,11 @@
-from imgui_bundle import imgui, imgui_ctx, imgui_color_text_edit
+from imgui_bundle import imgui, imgui_ctx
+try:
+    from imgui_bundle import imgui_color_text_edit
+except ImportError:
+    from utils.logger import AppLogger
+    AppLogger.get().error("Failed to import imgui_color_text_edit. Code highlighting will be disabled.")
+    imgui_color_text_edit = None
+
 from views import Panel
 from utils.logger import AppLogger
 from views.runtime_panel import RuntimePanel
@@ -8,11 +15,10 @@ class CodeEditorPanel(Panel):
     def __init__(self, view_model):
         super().__init__(view_model)
 
-
     def render(self):
         avail_x, avail_y = imgui.get_content_region_avail()
         if imgui.begin_table(
-            "CodeEditorLayout", 1, imgui.TableFlags_.no_borders_in_body
+            "CodeEditorLayout", 1, 0  # Using 0 for no flags
         ):
             # === Row 0: Dockable editor space ===
             imgui.table_next_row()
@@ -36,7 +42,7 @@ class CodeEditorPanel(Panel):
             imgui.text("Output:")
 
             with imgui_ctx.begin_child(
-                "EditorOutput", imgui.ImVec2(-1, 100), imgui.ChildFlags_.borders
+                "EditorOutput", imgui.ImVec2(-1, 100), 0  # Using 0 for no flags
             ):
                 if current := self.view_model.editors.get(
                     self.view_model.data.current_tab_name
@@ -57,7 +63,7 @@ class CodeEditorPanel(Panel):
         self.render_runtime_panels()
 
     def render_code_actions(self):
-        data = self.view_model.app.application_data
+        data = self.view_model.scope["app"].application_data
         if imgui.button("Run"):  # , imgui.ImVec2(-1, 24)):
             self.view_model.run_current_script()
 
@@ -106,11 +112,24 @@ class CodeEditorPanel(Panel):
             if visible:
                 self.view_model.data.current_tab_name = name
                 imgui.text(f"Editing: {name}")
-                editor.render("ScriptEditor", imgui.get_content_region_avail())
-                new_content = editor.update_model()
-                if new_content != tab.content:
-                    tab.content = new_content
-                    tab.is_dirty = True
+                if imgui_color_text_edit:
+                    editor.render(name, imgui.get_content_region_avail())
+                    # Update content from editor after rendering
+                    new_content = editor.update_model()
+                    if new_content != tab.content:
+                        tab.content = new_content
+                        tab.is_dirty = True
+                else:
+                    # Fallback to basic input text
+                    changed, new_content = imgui.input_text_multiline(
+                        "##editor",
+                        tab.content,
+                        imgui.get_content_region_avail(),
+                        0
+                    )
+                    if changed:
+                        tab.content = new_content
+                        tab.is_dirty = True
             imgui.end()
 
             if not opened:
@@ -137,5 +156,5 @@ class CodeEditorPanel(Panel):
         for label in panels_to_remove:
             del self.view_model.runtime_panels[label]
 
-    
+
 
