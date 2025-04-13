@@ -12,6 +12,8 @@ from viewmodels import *
 
 import inspect, os
 
+from views.settings_panel import SettingsPanel
+
 
 class App:
     _instance = None
@@ -60,6 +62,10 @@ class App:
             TerminalPanel,
             TerminalViewModel
         )
+        self.register_panel(
+            "Settings",
+            SettingsPanel,
+            SettingsViewModel)
 
     def render_panel(self, name):
         self.handle_shortcuts()
@@ -127,7 +133,7 @@ class App:
         params.imgui_window_params.default_imgui_window_type = (
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
         )
-
+        
         return params
 
     def register_panel(
