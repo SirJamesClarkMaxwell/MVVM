@@ -1,4 +1,6 @@
-from utils.logger import AppLogger
+from core.logger import AppLogger
+
+
 def print_last_operation(vm_store):
     vm = vm_store.get("Calculator")
     if not vm:
@@ -21,4 +23,6 @@ def print_last_operation(vm_store):
 
 
 print("Hello world!")
-print_last_operation(vm_store) # type: ignore
+print_last_operation(vm_store)  # type: ignore
+print("Hello world!")
+print_last_operation(vm_store)  # type: ignore

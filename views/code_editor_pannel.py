@@ -1,14 +1,15 @@
 from imgui_bundle import imgui, imgui_ctx
+
 try:
     from imgui_bundle import imgui_color_text_edit
 except ImportError:
-    from utils.logger import AppLogger
-    AppLogger.get().error("Failed to import imgui_color_text_edit. Code highlighting will be disabled.")
+    from core.logger import AppLogger
+    AppLogger.get().error(
+        "Failed to import imgui_color_text_edit. Code highlighting will be disabled.")
     imgui_color_text_edit = None
 
+from core.logger import AppLogger
 from views import Panel
-from utils.logger import AppLogger
-from views.runtime_panel import RuntimePanel
 
 
 class CodeEditorPanel(Panel):
@@ -25,7 +26,8 @@ class CodeEditorPanel(Panel):
             imgui.table_set_column_index(0)
 
             imgui.dock_space(
-                imgui.get_id("EditorDockspace"), imgui.ImVec2(avail_x, avail_y * 0.75)
+                imgui.get_id("EditorDockspace"), imgui.ImVec2(
+                    avail_x, avail_y * 0.75)
             )
 
             self.render_code_space()  # Renders windows inside dock
@@ -42,7 +44,8 @@ class CodeEditorPanel(Panel):
             imgui.text("Output:")
 
             with imgui_ctx.begin_child(
-                "EditorOutput", imgui.ImVec2(-1, 100), 0  # Using 0 for no flags
+                # Using 0 for no flags
+                "EditorOutput", imgui.ImVec2(-1, 100), 0
             ):
                 if current := self.view_model.editors.get(
                     self.view_model.data.current_tab_name
@@ -155,6 +158,3 @@ class CodeEditorPanel(Panel):
 
         for label in panels_to_remove:
             del self.view_model.runtime_panels[label]
-
-
-

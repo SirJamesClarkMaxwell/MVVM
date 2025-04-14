@@ -1,8 +1,13 @@
 
-from core.app import App
-from imgui_bundle import hello_imgui
+from app import App
+from imgui_bundle import hello_imgui,imgui
 
 def main():
+    print(type(imgui.Key.a))
+    print(imgui.get_key_name(imgui.Key.a))
+    print(type(imgui.Key(546)))
+    print(imgui.get_key_name(imgui.Key(546)))
+    
     app = App()
     runner_params = app.initialize()
     runner_params.imgui_window_params.default_imgui_window_type = \

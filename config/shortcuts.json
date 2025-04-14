@@ -1,0 +1,14 @@
+[
+    {
+        "id": "open_file",
+        "keys": [
+            "Ctrl+O"
+        ],
+        "category": "File Operations",
+        "context": [
+            "Global"
+        ],
+        "description": "Open a file",
+        "target": "file_panel_viewmodel.open_file"
+    }
+]

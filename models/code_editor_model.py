@@ -1,5 +1,6 @@
 import os
-from utils.logger import AppLogger
+
+from core.logger import AppLogger
 
 
 class CodeEditorModel:
@@ -10,7 +11,8 @@ class CodeEditorModel:
         )
         if not os.path.exists(self.script_dir):
             os.makedirs(self.script_dir)
-            AppLogger.get().info(f"Created script directory: {self.script_dir}")
+            AppLogger.get().info(
+                f"Created script directory: {self.script_dir}")
 
     def read_file(self, path: str) -> str:
         AppLogger.get().info(f"Reading file: {path}")
@@ -38,7 +40,8 @@ class CodeEditorModel:
     def list_scripts(self):
         AppLogger.get().debug(f"Listing scripts in: {self.script_dir}")
         try:
-            scripts = [f for f in os.listdir(self.script_dir) if f.endswith(".py")]
+            scripts = [f for f in os.listdir(
+                self.script_dir) if f.endswith(".py")]
             AppLogger.get().info(f"Found {len(scripts)} script(s)")
             return scripts
         except Exception as e:
@@ -51,7 +54,8 @@ class CodeEditorModel:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
-            AppLogger.get().debug(f"Loaded script '{name}' ({len(content)} bytes)")
+            AppLogger.get().debug(
+                f"Loaded script '{name}' ({len(content)} bytes)")
             return content
         except Exception as e:
             AppLogger.get().error(f"Failed to load script '{name}': {e}")
@@ -64,4 +68,5 @@ class CodeEditorModel:
             AppLogger.get().debug("Code executed successfully")
         except Exception as e:
             AppLogger.get().error(f"Error executing code: {e}")
+            raise
             raise

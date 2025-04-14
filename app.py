@@ -1,17 +1,17 @@
-from imgui_bundle import imgui, im_file_dialog, hello_imgui, immvision
-from imgui_bundle.immapp import static
+import os
+from typing import Any, List
 
+from imgui_bundle import hello_imgui, imgui
+
+from core.file_dialog import FileDialogController
 # import hello_imgui
 from core.logger import AppLogger
-from core.file_dialog import FileDialogController
-from core.thread_pool import Task, ThreadPool
+from core.thread_pool import ThreadPool
 from data import *
 from models import *
-from views import *
 from viewmodels import *
-
-import inspect, os
-
+from viewmodels.shortcut_viewmodel import ShortcutViewModel
+from views import *
 from views.settings_panel import SettingsPanel
 
 
@@ -31,41 +31,48 @@ class App:
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
 
-
     def initialize(self):
         AppLogger.get().info("Initializing App")
 
         self.setup_panels()
-        self.create_dockable_windows() 
+        self.create_dockable_windows()
 
         # ✅ Automatically load live_plot.py into DevTools
         self.initialize_app_state()
+        
+        self.application_data.app_settings.shortcut_manager.bind_viewmodel_targets({
+        "file_panel_viewmodel.open_file": self.file_dialog.open,
+        "code_editor_viewmodel.save": self.vm_store["DevTools"].save_script,
+        "app_viewmodel.close_active_window": self.close_active_window
+    })
+        
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
         return runner_params
 
     def setup_panels(self):
-        AppLogger.get().debug(f"Setting up panels")
+        AppLogger.get().debug("Setting up panels")
         self.register_panel(
-            "Calculator",
-            CalculatorPanel,
-            CalculatorViewModel
-            
+            name="Calculator",
+            view_cls=CalculatorPanel,
+            viewmodel_cls=CalculatorViewModel
+
         )
         self.register_panel(
-            "DevTools",
-            CodeEditorPanel,
-            CodeEditorViewModel
+            name="DevTools",
+            view_cls=CodeEditorPanel,
+            viewmodel_cls=CodeEditorViewModel
         )
         self.register_panel(
-            "Terminal",
-            TerminalPanel,
-            TerminalViewModel
+            name="Terminal",
+            view_cls=TerminalPanel,
+            viewmodel_cls=TerminalViewModel
         )
         self.register_panel(
-            "Settings",
-            SettingsPanel,
-            SettingsViewModel)
+            name="Settings",
+            view_cls=SettingsPanel,
+            viewmodel_cls=SettingsViewModel,
+            view_args=[ShortcutViewModel()])
 
     def render_panel(self, name):
         self.handle_shortcuts()
@@ -75,55 +82,46 @@ class App:
                 panel.render()
                 break
 
-        
         completed_tasks = self.thread_pool.get_completed()
         for task in completed_tasks:
             result = task.result()
             if result is not None:
                 AppLogger.get().info(f"Loaded CSV: {result.shape[0]} rows")
 
-    def open_file(self, path: str):
-        """Centralized logic for opening a file."""
+    def on_file_selected(self, path: str):
         try:
             with open(path, encoding="utf8") as f:
                 content = f.read()
-            editor_vm: CodeEditorViewModel = self.vm_store.get("DevTools")
-            if editor_vm:
-                editor_vm.open_script(path, content)
-                AppLogger.get().info(f"📂 Opened in editor: {path}")
-            else:
-                AppLogger.get().warning("DevTools ViewModel not found.")
+            editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
+            editor_vm.open_script(path, content)
+            AppLogger.get().info(f"📂 Opened in editor: {path}")
         except Exception as e:
             AppLogger.get().error(f"Failed to open {path}: {e}")
 
-    def on_file_selected(self, path: str):
-        """Callback for when a file is selected."""
-        AppLogger.get().info(f"File selected: {path}")
-        self.open_file(path)
-
     def handle_shortcuts(self):
         io = imgui.get_io()
+        keys = []
+        for key in range(513,666):
+            modifiers = []
+            if io.key_ctrl:
+                modifiers.append("Ctrl")
+            if io.key_shift:
+                modifiers.append("Shift")
+            if io.key_alt:
+                modifiers.append("Alt")
+            if io.key_super:
+                modifiers.append("Super")
+            key_name = imgui.get_key_name(imgui.Key(key))
+            if not key_name:
+                continue
+            full_key = "+".join(modifiers + [key_name])
+            keys.append(full_key)
 
-        self.last_shortcut_frame = getattr(self, "last_shortcut_frame", -1)
-
-        # Retrieve the active context
-        active_context = self.application_data.app_settings.context_manager.get_active_context()
-
-        # Check for shortcuts in the active context
-        shortcuts = self.application_data.app_settings.shortcut_manager.get_shortcuts()
-        for category, actions in shortcuts.items():
-            for action, shortcut in actions.items():
-                if shortcut == "Ctrl+O" and io.key_ctrl and imgui.is_key_pressed(imgui.Key.o, repeat=False):
-                    current_frame = imgui.get_frame_count()
-                    if current_frame != self.last_shortcut_frame:
-                        self.last_shortcut_frame = current_frame
-                        self.file_dialog.open()
-                        AppLogger.get().info("Ctrl+O pressed – opening file dialog")
-                        return
-
+        if keys:
+            self.application_data.app_settings.shortcut_manager.handle_key_event(keys)
 
     def create_dockable_windows(self):
-        AppLogger.get().debug(f"Creating dockable windows")
+        AppLogger.get().debug("Creating dockable windows")
         for label in self.panels.keys():
             self.add_dockable_window_for_panel(label)
 
@@ -134,7 +132,8 @@ class App:
         self.dockable_windows.append(log_window)
 
         self.file_dialog = FileDialogController()
-        self.file_dialog.result_callback = lambda path: self.on_file_selected(path)
+        self.file_dialog.result_callback = lambda path: self.on_file_selected(
+            path)
 
     def add_dockable_window_for_panel(self, label):
         window = hello_imgui.DockableWindow()
@@ -144,14 +143,14 @@ class App:
         self.dockable_windows.append(window)
 
     def create_runner_params(self):
-        AppLogger.get().debug(f"Creating runner params")
+        AppLogger.get().debug("Creating runner params")
         params = hello_imgui.RunnerParams()
         params.app_window_params.window_title = "MVVM Paradise"
         params.imgui_window_params.enable_viewports = True
         params.imgui_window_params.default_imgui_window_type = (
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
         )
-        
+
         return params
 
     def register_panel(
@@ -159,19 +158,30 @@ class App:
         name: str,
         view_cls,
         viewmodel_cls,
+        view_args: List[Any] | None = None,
+        viewmodel_args: List[Any] | None = None,
+        view_kwargs: dict[str, Any] | None = None,
+        viewmodel_kwargs: dict[str, Any] | None = None,
     ):
-        AppLogger.get().debug(f"Registering Panel: {name} with {view_cls.__name__}")
+        AppLogger.get().debug(
+            f"Registering Panel: {name} with {view_cls.__name__}")
         if name in self.panels:
-            AppLogger.get().warning(f"Panel '{name}' already exists. Skipping registration.")
+            AppLogger.get().warning(
+                f"Panel '{name}' already exists. Skipping registration.")
             return
-        vm = viewmodel_cls(self)
-        panel = view_cls(vm)
+        vm = viewmodel_cls(self, 
+                           *(viewmodel_args if viewmodel_args is not None else []),
+                           **(viewmodel_kwargs if viewmodel_kwargs is not None else {}))
+        panel = view_cls(vm, 
+                        *(view_args if view_args is not None else []), 
+                        **(view_kwargs if view_kwargs is not None else {}))
         self.vm_store[name] = vm
         self.panels[name] = panel
 
     def initialize_app_state(self):
         try:
-            editor_vm = self.vm_store.get("DevTools")  # or "CodeEditor" if renamed
+            # or "CodeEditor" if renamed
+            editor_vm = self.vm_store.get("DevTools")
             if editor_vm:
                 path = os.path.join(
                     os.path.abspath(os.path.curdir), "Scripts", "live_plot.py"
@@ -186,3 +196,7 @@ class App:
                     AppLogger.get().warning(f"⚠️ Script not found: {path}")
         except Exception as e:
             AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
+
+    def close_active_window(self):
+        # TODO: implement close_active_window to remove focused panel from view
+        AppLogger.get().info("Requested to close active window (stub)")

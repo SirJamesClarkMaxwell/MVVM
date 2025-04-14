@@ -1,6 +1,7 @@
-from utils.logger import AppLogger
-from models.calculator_model import CalculatorModel
+from core.logger import AppLogger
 from data.calculator_data import CalculatorData
+from models.calculator_model import CalculatorModel
+
 
 class CalculatorViewModel:
     def __init__(self, app) -> None:
@@ -10,7 +11,7 @@ class CalculatorViewModel:
         self.data.result = 0.0
 
     def compute(self):
-        self.data.result = self.model.evaluate(self.data.a, self.data.b, self.data.operation)
-        AppLogger.get().info(f"Computed: {self.data.a} {self.data.operation} {self.data.b} = {self.data.result}")
-
-    
+        self.data.result = self.model.evaluate(
+            self.data.a, self.data.b, self.data.operation)
+        AppLogger.get().info(
+            f"Computed: {self.data.a} {self.data.operation} {self.data.b} = {self.data.result}")
