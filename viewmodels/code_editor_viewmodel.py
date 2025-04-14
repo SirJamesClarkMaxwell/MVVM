@@ -3,7 +3,7 @@ from typing import cast
 
 from imgui_bundle import imgui_color_text_edit, imgui
 
-from utils.logger import AppLogger
+from core.logger import AppLogger
 
 from models.code_editor_model import CodeEditorModel
 from data.code_editor_data import  CodeEditorData, ScriptTab
