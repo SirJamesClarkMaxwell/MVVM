@@ -1,5 +1,5 @@
 
-from app import App
+from core.app import App
 from imgui_bundle import hello_imgui
 
 def main():
