@@ -118,7 +118,7 @@ class App:
             keys.append(full_key)
 
         if keys:
-            self.application_data.app_settings.shortcut_manager.handle_key_event(keys)
+            self.vm_store["Settings"].handle_key_event(keys)
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
@@ -179,24 +179,41 @@ class App:
         self.panels[name] = panel
 
     def initialize_app_state(self):
+        AppLogger.get().info("Initializing App state")
+        self._shortcuts_initialization()
+        self._scripting_initialization()
+
+    def _scripting_initialization(self)->None:
+        AppLogger.get().info("Initializing Scripting")
         try:
-            # or "CodeEditor" if renamed
-            editor_vm = self.vm_store.get("DevTools")
-            if editor_vm:
-                path = os.path.join(
+            editor_vm = self.vm_store["DevTools"]
+            if not editor_vm:
+                AppLogger.get().error(f"There are not DevTools panel")
+                return None
+            path = os.path.join(
                     os.path.abspath(os.path.curdir), "Scripts", "live_plot.py"
                 )
-                if os.path.exists(path):
-                    content = ""
-                    with open(path, "r") as f:
-                        content = f.read()
-                    editor_vm.open_script(path, content)
-                    AppLogger.get().info(f"📂 Loaded script: {path}")
-                else:
-                    AppLogger.get().warning(f"⚠️ Script not found: {path}")
+            if  not os.path.exists(path):
+                AppLogger.get().error(f"{path} don't exist")
+            content = ""
+            with open(path, "r") as f:
+                content = f.read()
+            editor_vm.open_script(path, content)
+            AppLogger.get().info(f"📂 Loaded script: {path}")
         except Exception as e:
             AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
+    def _shortcuts_initialization(self)->None:
+        AppLogger.get().info("Initializing Shortcut")
+        settings_viewmodel = self.vm_store["Settings"]
+        if not settings_viewmodel:
+            AppLogger.get().warning("There are no Settings ViewModel")
+            return None
+        cwd = os.path.abspath(os.curdir)
+        filepath = os.path.join(cwd,"config/shortcuts.json")
 
+        settings_viewmodel.load_from_file(filepath)
+        
+        
     def close_active_window(self):
         # TODO: implement close_active_window to remove focused panel from view
         AppLogger.get().info("Requested to close active window (stub)")

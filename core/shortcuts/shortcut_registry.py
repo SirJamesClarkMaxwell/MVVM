@@ -29,11 +29,11 @@ class ShortcutRegistry:
     def get_by_keys_and_context(
         self, keys: List[str], context: str
     ) -> Optional[Shortcut]:
-        for s in self._shortcuts:
-            if set(s.keys) == set(keys) and (
-                context in s.context or "Global" in s.context
+        for item in self._shortcuts:
+            if set(item.keys) == set(keys) and (
+                context in item.context or "Global" in item.context
             ):
-                return s
+                return item
         return None
 
     def replace_all(self, new_shortcuts: List[Shortcut]):
