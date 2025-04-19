@@ -70,7 +70,7 @@ class SettingsPanel(Panel):
             imgui.tree_pop()
 
     def draw_shortcut_settings_panel(self,shortcut_vm):
-        imgui.begin("Shortcut Settings")
+
 
         if imgui.button("Save Changes"):
             shortcut_vm.commit_changes()
@@ -90,8 +90,8 @@ class SettingsPanel(Panel):
         categorized = shortcut_vm.get_shortcuts_by_category()
 
         for category, shortcuts in categorized.items():
-            if imgui.collapsing_header(category, flags=imgui.TREE_NODE_DEFAULT_OPEN):
-                if imgui.begin_table(f"Table_{category}", 3, imgui.TABLE_BORDERS | imgui.TABLE_ROW_BACKGROUND):
+            if imgui.collapsing_header(category, flags=imgui.TreeNodeFlags_.default_open):
+                if imgui.begin_table(f"Table_{category}", 3,imgui.TableFlags_.borders|imgui.TableFlags_.row_bg|imgui.TableFlags_.resizable):#, imgui.TABLE_BORDERS | imgui.TABLE_ROW_BACKGROUND):
                     imgui.table_setup_column("Action")
                     imgui.table_setup_column("Shortcut Keys")
                     imgui.table_setup_column("Description")
@@ -121,4 +121,3 @@ class SettingsPanel(Panel):
 
                     imgui.end_table()
 
-        imgui.end()

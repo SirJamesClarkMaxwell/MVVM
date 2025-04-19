@@ -1,4 +1,4 @@
-import os
+import os, sys
 from typing import Any, List
 
 from imgui_bundle import hello_imgui, imgui
@@ -40,12 +40,11 @@ class App:
         # ✅ Automatically load live_plot.py into DevTools
         self.initialize_app_state()
         
-        self.application_data.app_settings.shortcut_manager.bind_viewmodel_targets({
-        "file_panel_viewmodel.open_file": self.file_dialog.open,
-        "code_editor_viewmodel.save": self.vm_store["DevTools"].save_script,
-        "app_viewmodel.close_active_window": self.close_active_window
+        self.vm_store["Settings"].shortcut_viewmodel.shortcut_manager.bind_viewmodel_targets({
+        "function": self.on_file_selected,
+        "function": self.vm_store["DevTools"].save_script,
+        "function": self.shutdown
     })
-        
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
         return runner_params
@@ -68,11 +67,15 @@ class App:
             view_cls=TerminalPanel,
             viewmodel_cls=TerminalViewModel
         )
+        
+        shortcutViewModel = ShortcutViewModel(self)
         self.register_panel(
             name="Settings",
             view_cls=SettingsPanel,
             viewmodel_cls=SettingsViewModel,
-            view_args=[ShortcutViewModel()])
+            viewmodel_kwargs={"shortcut_viewmodel": shortcutViewModel},
+            view_kwargs={"shortcut_viewmodel": shortcutViewModel}  # Pass to SettingsPanel
+            )
 
     def render_panel(self, name):
         self.handle_shortcuts()
@@ -118,7 +121,7 @@ class App:
             keys.append(full_key)
 
         if keys:
-            self.vm_store["Settings"].handle_key_event(keys)
+            self.vm_store["Settings"].shortcut_viewmodel.handle_shortcut(keys)
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
@@ -204,16 +207,28 @@ class App:
             AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
     def _shortcuts_initialization(self)->None:
         AppLogger.get().info("Initializing Shortcut")
-        settings_viewmodel = self.vm_store["Settings"]
+        settings_viewmodel = self.vm_store.get("Settings")
         if not settings_viewmodel:
-            AppLogger.get().warning("There are no Settings ViewModel")
-            return None
-        cwd = os.path.abspath(os.curdir)
-        filepath = os.path.join(cwd,"config/shortcuts.json")
+            AppLogger.get().warning("There is no Settings ViewModel")
+            return
 
-        settings_viewmodel.load_from_file(filepath)
-        
+        shortcut_viewmodel = getattr(settings_viewmodel, "shortcut_viewmodel", None)
+        if not shortcut_viewmodel:
+            AppLogger.get().warning("Settings ViewModel does not have a shortcut_viewmodel")
+            return
+
+        cwd = os.path.abspath(os.curdir)
+        filepath = os.path.join(cwd, "config/shortcuts.json")
+
+        try:
+            shortcut_viewmodel.load_from_file(filepath)
+            AppLogger.get().info(f"Loaded shortcuts from {filepath}")
+        except Exception as e:
+            AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
         
     def close_active_window(self):
         # TODO: implement close_active_window to remove focused panel from view
         AppLogger.get().info("Requested to close active window (stub)")
+
+    def shutdown(self):
+        sys.exit(0)

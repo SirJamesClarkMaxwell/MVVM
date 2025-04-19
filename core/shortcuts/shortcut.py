@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass,field
+from typing import List,Callable,Optional
 
 @dataclass
 class Shortcut:
@@ -8,4 +8,4 @@ class Shortcut:
     category: str
     context: List[str]
     description: str
-    target: str
+    function: Optional[Callable] = field(default=None)

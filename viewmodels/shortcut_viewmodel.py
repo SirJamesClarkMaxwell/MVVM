@@ -7,7 +7,7 @@ from core.shortcuts import ShortcutManager,ShortcutRegistry,ShortcutContext
 
 
 class ShortcutViewModel:
-    def __init__(self, config_path: str = "config/shortcuts.json"):
+    def __init__(self,app, config_path: str = "config/shortcuts.json",*args,**kwargs):
         self.shortcut_manager = ShortcutManager(ShortcutContext())
         self.shortcut_registry = ShortcutRegistry()
         self.config_path = config_path
@@ -17,7 +17,7 @@ class ShortcutViewModel:
 
     def get_shortcuts_by_category(self) -> dict[str, List[Shortcut]]:
         categorized = {}
-        for sc in self.shortcuts:
+        for sc in self.shortcut_registry.list_all():
             categorized.setdefault(sc.category, []).append(sc)
         return categorized
 

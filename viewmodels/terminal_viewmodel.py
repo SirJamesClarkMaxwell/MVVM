@@ -2,7 +2,7 @@ from data.terminal_data import TerminalData
 from models.terminal_model import TerminalModel
 
 class TerminalViewModel:
-    def __init__(self,app):
+    def __init__(self,app,*args,**kwargs):
         self.model = TerminalModel()
         self.data = TerminalData()
     def run_command(self):

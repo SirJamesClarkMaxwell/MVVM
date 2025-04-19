@@ -20,7 +20,7 @@ class ShortcutManager:
         context = self.context_service.get_active_context()
         shortcut = registry.get_by_keys_and_context(keys, context)
         if not shortcut:
-            AppLogger.get().warning("ShortcutManager.handle_key_event")
+            # AppLogger.get().warning("ShortcutManager.handle_key_event")
             return
         target_fn = self.target_map.get(shortcut.target)
         if not target_fn:

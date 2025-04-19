@@ -11,7 +11,7 @@ from views.runtime_panel import RuntimePanel
 
 
 class EditorUI:
-    def __init__(self, content: str):
+    def __init__(self, content: str,*args,**kwargs):
         TextEditor = imgui_color_text_edit.TextEditor
         self.editor = TextEditor()
         self.editor.set_language_definition(TextEditor.LanguageDefinition.python())

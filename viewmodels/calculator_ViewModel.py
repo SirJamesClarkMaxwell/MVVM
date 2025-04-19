@@ -4,7 +4,7 @@ from models.calculator_model import CalculatorModel
 
 
 class CalculatorViewModel:
-    def __init__(self, app) -> None:
+    def __init__(self, app,*args,**kwargs) -> None:
         self.model: CalculatorModel = CalculatorModel()
         self.data: CalculatorData = CalculatorData()
         self.app = app
