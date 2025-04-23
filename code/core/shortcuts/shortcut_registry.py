@@ -1,6 +1,8 @@
 
 from typing import List, Optional
 
+from core.logger import AppLogger
+
 from .shortcut import Shortcut
 
 
@@ -39,4 +41,11 @@ class ShortcutRegistry:
     def replace_all(self, new_shortcuts: List[Shortcut]):
         self._shortcuts = new_shortcuts
 
+    def __getitem__(self, shortcut_id: str) -> Optional[Shortcut]:
+        if shortcut_id not in self._shortcuts:
+            AppLogger.get().error(
+                f"Shortcut '{shortcut_id}' not found in registry"
+            )
+            return None
+        return self._shortcuts[shortcut_id]
 

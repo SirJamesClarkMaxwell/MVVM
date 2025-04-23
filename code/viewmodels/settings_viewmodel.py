@@ -1,6 +1,4 @@
-
-from data.app_settings import AppSettings
-# from ..app import App
+from app import AppSettings
 class SettingsViewModel:
     def __init__(self,app,*args,**kwargs) -> None:
         self.app = app

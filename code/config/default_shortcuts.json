@@ -1,0 +1,32 @@
+[
+  {
+    "id": "Open File",
+    "keys": ["Ctrl+O"],
+    "category": "File Operations",
+    "context": ["Global"],
+    "description": "Open a file"
+  },
+  {
+    "id": "Run Script",
+    "keys": ["Ctrl+R"],
+    "category": "Dev-Tools",
+    "context": ["Development"],
+    "description": "Run active script"
+  },
+  {
+    "id": "save files",
+    "keys": ["Ctrl+S"],
+    "category": "",
+    "context": ["File Operation"],
+    "description": "Save a file"
+  },
+  {
+    "id": "close app",
+    "keys": ["Ctrl+Shift+W"],
+    "category": "App",
+    "context": ["Global"],
+    "description": "Close entire application"
+  }
+  
+
+]

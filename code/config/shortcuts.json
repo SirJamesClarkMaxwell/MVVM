@@ -1,0 +1,23 @@
+[
+  {
+    "id": "open_file",
+    "keys": ["Ctrl+O"],
+    "category": "File Operations",
+    "context": ["Global"],
+    "description": "Open a file"
+  },
+  {
+    "id": "save files",
+    "keys": ["Ctrl+S"],
+    "category": "",
+    "context": ["File Operation"],
+    "description": "Save a file"
+  },
+  {
+    "id": "close app",
+    "keys": ["Ctrl+w"],
+    "category": "App",
+    "context": ["Global"],
+    "description": "Close entire application"
+  }
+]
