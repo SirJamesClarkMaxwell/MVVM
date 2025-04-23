@@ -184,7 +184,7 @@ class App:
                 AppLogger.get().error("There are not DevTools panel")
                 return None
             path = os.path.join(
-                os.path.abspath(os.path.curdir), "Scripts", "live_plot.py"
+                os.path.abspath(os.path.curdir), "code","Scripts", "live_plot.py"
             )
             if not os.path.exists(path):
                 AppLogger.get().error(f"{path} don't exist")
@@ -215,7 +215,7 @@ class App:
 
         try:
             loaded_shortcuts = shortcut_viewmodel.load_from_file(filepath)
-            shortcut_viewmodel.bind_shortcuts(loaded_shortcuts)
+            # shortcut_viewmodel.bind_shortcuts(loaded_shortcuts)
         except OSError as e:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
 
@@ -239,3 +239,5 @@ class App:
 
     def shutdown(self):
         sys.exit(0)
+
+    

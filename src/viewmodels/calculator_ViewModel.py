@@ -1,6 +1,6 @@
-from core.logger import AppLogger
-from data.calculator_data import CalculatorData
-from models.calculator_model import CalculatorModel
+from src.core.logger import AppLogger
+from src.data.calculator_data import CalculatorData
+from src.models.calculator_model import CalculatorModel
 
 
 class CalculatorViewModel:

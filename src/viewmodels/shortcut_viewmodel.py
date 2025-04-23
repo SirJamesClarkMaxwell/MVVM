@@ -1,9 +1,8 @@
 import os
-from typing import List,Optional,Dict
+from typing import List,Optional,Dict,Tuple
 
 from numpy import short
 
-from app import App
 from core.logger import AppLogger
 from core.shortcuts.shortcut import Shortcut,ShortcutBinding
 from core.shortcuts import ShortcutManager,ShortcutRegistry,ShortcutContext
@@ -11,7 +10,7 @@ from core.shortcuts import ShortcutManager,ShortcutRegistry,ShortcutContext
 
 class ShortcutViewModel:
 
-    def __init__(self,app, config_path: str = "config/shortcuts.json"):
+    def __init__(self,app, config_path: str = "code/config/shortcuts.json"):
         self.shortcut_manager = ShortcutManager(ShortcutContext())
         self.shortcut_registry = ShortcutRegistry()
         self.config_path = config_path
@@ -26,9 +25,15 @@ class ShortcutViewModel:
         # TODO: test bind_shortcut function
         binging_conditions,messege = self._check_binding_conditions(bingings=bindings, shortcut=to_bind)
 
+        def check_conditions(binding: ShortcutBinding, shortcut: Shortcut) -> bool:
+            shocrtcut_id, binding_id = shortcut.id,binding.id
+            return binding_id == shocrtcut_id
         if binging_conditions:
             AppLogger.get().info(messege)
             for shortcut, binding in zip(to_bind, bindings):
+                if not check_conditions(binding, shortcut):
+                    AppLogger.get().error(f"Binding conditions are not met for {binding.id} and {shortcut.id}")
+                    continue
                 shortcut.bingings = binding
                 self.shortcut_registry.register(shortcut)
                 self.shortcut_manager.register(binding)
@@ -37,7 +42,7 @@ class ShortcutViewModel:
             AppLogger.get().error(messege)
             return None
 
-    def _check_binding_conditions(self, **kwargs) -> tuple(bool,str):
+    def _check_binding_conditions(self, **kwargs) -> Tuple[bool,str]:
         # TODO: test _check_binding_conditions
         bingings = kwargs["bingings"]
         shortcut = kwargs["shortcut"]

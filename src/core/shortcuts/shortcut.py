@@ -4,6 +4,7 @@ from typing import List, Optional, Any, Callable, Dict
 
 @dataclass
 class ShortcutBinding:
+    id: str = field(default="")
     function: Callable[..., Any] = field(default=None)
     pre_process: Optional[Callable[[Any], Any]] = field(default=None)
     post_process: Optional[Callable[[Any, Any], None]] = field(default=None)

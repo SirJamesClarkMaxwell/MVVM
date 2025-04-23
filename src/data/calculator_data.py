@@ -1,4 +1,3 @@
-import attr
 from dataclasses import dataclass
 @dataclass
 class CalculatorData:

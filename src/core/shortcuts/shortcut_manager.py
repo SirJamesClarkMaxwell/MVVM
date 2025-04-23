@@ -11,6 +11,7 @@ class ShortcutManager:
     def __init__(self, context_service: ShortcutContext):
         self.context_service = context_service
         self.target_map: Dict[str, Callable] = {}
+        
 
     def handle_key_event(
         self, keys: List[str], registry: ShortcutRegistry, *args, **kwargs
