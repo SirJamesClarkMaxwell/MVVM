@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import List, Optional, Union,Callable
+from typing import  Optional, Callable
 from core.logger import AppLogger
-
 
 
 class FileRouter:
@@ -16,26 +15,36 @@ class FileRouter:
         self.register_handler(".md", self._handle_text)
         self.register_handler(".png", self._handle_image)
 
-    def register_handler(self, extension: str, handler: Callable[[str], None]):
-            self._handlers[extension.lower()] = handler
+    def register_handler(self, extension: str, handler: Callable[[str], None])-> None:
+        self._handlers[extension.lower()] = handler
+        AppLogger.get().info(f"Registered handler for {extension} files.")
 
-    def route(self, filepath: str):
+    def route(self, filepath: str)->None:
         path = Path(filepath)
         ext = path.suffix.lower()
-
         handler = self._handlers.get(ext)
         if handler:
-            handler(filepath)
+            try:
+                handler(filepath)
+            except NotImplementedError:
+                AppLogger.get().error(f"Handler for {ext} files is not implemented.")
         else:
             self._handle_unknown(filepath)
 
-    def _handle_text(self, filepath: str):
-        from app import App  # or inject this later
-        editor_vm = App.get().vm_store["CodeEditor"]
+    def route_folder(self, folder_path: str)->None:
+        # TODO: Implement folder routing logic
+        AppLogger.get().info(f"Routing folder: {folder_path}")
+        raise NotImplementedError("Folder routing is not implemented yet.")
+
+    def _handle_text(self, filepath: str)->None:
+        editor_vm = self.app.vm_store["CodeEditor"]
         editor_vm.load_file(filepath)
+        AppLogger.get().info(f"Opened Text file of: {filepath}")
 
-    def _handle_image(self, filepath: str):
-        print(f"[Image Viewer Placeholder] Open image: {filepath}")
+    def _handle_image(self, filepath: str) -> None:
+        # TODO: Implement folder routing logic
+        AppLogger.get().info(f"[Image Viewer Placeholder] Open image: {filepath}")
+        raise NotImplementedError("Folder routing is not implemented yet.")
 
-    def _handle_unknown(self, filepath: str):
-        print(f"[Unhandled File] No handler for: {filepath}")
+    def _handle_unknown(self, filepath: str) -> None:
+        AppLogger.get().warning(f"[Unhandled File] No handler for: {filepath}")

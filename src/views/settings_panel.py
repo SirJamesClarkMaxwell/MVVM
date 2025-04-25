@@ -90,6 +90,7 @@ class SettingsPanel(Panel):
         categorized = shortcut_vm.get_shortcuts_by_category()
 
         for category, shortcuts in categorized.items():
+            # FIXME: Fix problem with tree node, shortcuts per category should be in one tree node 
             if imgui.collapsing_header(category, flags=imgui.TreeNodeFlags_.default_open):
                 if imgui.begin_table(f"Table_{category}", 3,imgui.TableFlags_.borders|imgui.TableFlags_.row_bg|imgui.TableFlags_.resizable):#, imgui.TABLE_BORDERS | imgui.TABLE_ROW_BACKGROUND):
                     imgui.table_setup_column("Action")

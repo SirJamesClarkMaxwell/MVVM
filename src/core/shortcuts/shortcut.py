@@ -1,6 +1,6 @@
 from dataclasses import dataclass,field
 from typing import List, Optional, Any, Callable, Dict
-
+from core.logger import AppLogger
 
 @dataclass
 class ShortcutBinding:
@@ -29,6 +29,8 @@ class Shortcut:
     bingings: ShortcutBinding = field(default_factory=ShortcutBinding)
 
     def __call__(self, app: Any) -> None:
+        AppLogger.get().info(f"Executing shortcut '{self.id}'")
+        
         if not self.bingings.function:
             raise ValueError("Missing target function")
 
@@ -36,13 +38,9 @@ class Shortcut:
 
         if self.bingings.pre_process:
             result = self.bingings.pre_process(app)
-            if isinstance(result, tuple):
-                args = result
-            else:
-                args = (result,)
+            args = result
 
         result = self.bingings.function(*args, **kwargs)
 
         if self.bingings.post_process:
             self.bingings.post_process(result, app)
-

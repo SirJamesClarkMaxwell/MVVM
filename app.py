@@ -26,6 +26,7 @@ class App:
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
         self.file_dialog = None
+        self.project_path = os.path.abspath(os.curdir)
 
     def initialize(self):
         AppLogger.get().info("Initializing App")
@@ -92,6 +93,7 @@ class App:
         io = imgui.get_io()
         keys = []
         for key in range(513, 666):
+            #FIXME change this range to be more generic
             modifiers = []
             if io.key_ctrl:
                 modifiers.append("Ctrl")
@@ -121,8 +123,7 @@ class App:
         log_window.gui_function = hello_imgui.log_gui
         self.dockable_windows.append(log_window)
 
-        self.file_dialog = FileDialogController()
-        self.file_dialog.result_callback = lambda path: self.on_file_selected
+        self.file_dialog = FileDialogController(self)
 
     def add_dockable_window_for_panel(self, label):
         window = hello_imgui.DockableWindow()
@@ -184,7 +185,7 @@ class App:
                 AppLogger.get().error("There are not DevTools panel")
                 return None
             path = os.path.join(
-                os.path.abspath(os.path.curdir), "code","Scripts", "live_plot.py"
+                os.path.abspath(os.path.curdir), "src","Scripts", "live_plot.py"
             )
             if not os.path.exists(path):
                 AppLogger.get().error(f"{path} don't exist")
@@ -211,10 +212,13 @@ class App:
             return
 
         cwd = os.path.abspath(os.curdir)
-        filepath = os.path.join(cwd, "config/shortcuts.json")
+        filepath = os.path.join(cwd, "src/config/shortcuts.json")
 
         try:
             loaded_shortcuts = shortcut_viewmodel.load_from_file(filepath)
+            for shortcut in loaded_shortcuts:
+                shortcut_viewmodel.bind_shortcut(shortcut, shortcut.bingings)
+                shortcut_viewmodel.shortcut_registry.register(shortcut)
             # shortcut_viewmodel.bind_shortcuts(loaded_shortcuts)
         except OSError as e:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
@@ -240,4 +244,3 @@ class App:
     def shutdown(self):
         sys.exit(0)
 
-    

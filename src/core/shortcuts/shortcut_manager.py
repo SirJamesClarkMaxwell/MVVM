@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Any
 import json
 from dataclasses import asdict
 from core.logger import AppLogger
@@ -10,24 +10,18 @@ from .shortcut_registry import ShortcutRegistry
 class ShortcutManager:
     def __init__(self, context_service: ShortcutContext):
         self.context_service = context_service
-        self.target_map: Dict[str, Callable] = {}
         
 
     def handle_key_event(
-        self, keys: List[str], registry: ShortcutRegistry, *args, **kwargs
+        self, keys: List[str], registry: ShortcutRegistry, app: Any
     ) -> None:
         context = self.context_service.get_active_context()
         shortcut = registry.get_by_keys_and_context(keys, context)
         if not shortcut:
             return
-        target_fn = registry.get(shortcut.function)
-        if not target_fn:
-            AppLogger.get().error(f"Shortcut '{shortcut.id}' has no target function")
-            return
         try:
-            AppLogger.get().info(f"Executing shortcut '{shortcut.id}'")
-            target_fn(*args, **kwargs)
-        except IOError as e:
+            shortcut(app)
+        except ValueError as e:
             AppLogger.get().error(f"Shortcut '{shortcut.id}' failed: {e}")
 
     @staticmethod

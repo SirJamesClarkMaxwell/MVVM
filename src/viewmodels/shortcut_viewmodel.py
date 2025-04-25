@@ -10,7 +10,7 @@ from core.shortcuts import ShortcutManager,ShortcutRegistry,ShortcutContext
 
 class ShortcutViewModel:
 
-    def __init__(self,app, config_path: str = "code/config/shortcuts.json"):
+    def __init__(self,app, config_path: str = "src/config/shortcuts.json"):
         self.shortcut_manager = ShortcutManager(ShortcutContext())
         self.shortcut_registry = ShortcutRegistry()
         self.config_path = config_path
@@ -60,7 +60,7 @@ class ShortcutViewModel:
             return (True, "Binding conditions are met")
 
     def handle_shortcut(self, shortcuts: List[Shortcut]):
-        self.shortcut_manager.handle_key_event(shortcuts, self.shortcut_registry)
+        self.shortcut_manager.handle_key_event(shortcuts, self.shortcut_registry,self.app)
 
     def get_shortcuts_by_category(self) -> dict[str, List[Shortcut]]:
         categorized = {}

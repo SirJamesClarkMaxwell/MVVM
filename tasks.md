@@ -4,4 +4,10 @@
    1) Add closing button behavior: [ x ]
    2) Handling output [ x ]
 2) Add live plotting [ x ]
+3) Shortcut
+   1) 
+
+
+
+
 3) Add file type recognition
