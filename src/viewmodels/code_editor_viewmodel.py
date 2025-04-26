@@ -3,11 +3,11 @@ from typing import cast
 
 from imgui_bundle import imgui_color_text_edit, imgui
 
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
-from models.code_editor_model import CodeEditorModel
-from data.code_editor_data import  CodeEditorData, ScriptTab
-from views.runtime_panel import RuntimePanel
+from src.models.code_editor_model import CodeEditorModel
+from src.data.code_editor_data import  CodeEditorData, ScriptTab
+from src.views.runtime_panel import RuntimePanel
 
 
 class EditorUI:
@@ -44,7 +44,7 @@ class CodeEditorViewModel:
         }
         self.runtime_panels: dict[str, RuntimePanel] = {}
 
-    def open_script(self, path: str, content: str):
+    def open_script(self, path: str):
         content = self.model.read_file(path)
         AppLogger.get().debug(path)
         name = path.split("\\")[-1]

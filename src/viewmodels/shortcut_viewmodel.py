@@ -1,11 +1,12 @@
 import os
+import types
 from typing import List,Optional,Dict,Tuple
 
 from numpy import short
 
-from core.logger import AppLogger
-from core.shortcuts.shortcut import Shortcut,ShortcutBinding
-from core.shortcuts import ShortcutManager,ShortcutRegistry,ShortcutContext
+from src.core.logger import AppLogger
+from src.core.shortcuts import Shortcut, ShortcutBinding
+from src.core.shortcuts import ShortcutManager, ShortcutRegistry, ShortcutContext
 
 
 class ShortcutViewModel:
@@ -22,42 +23,60 @@ class ShortcutViewModel:
         AppLogger.get().info(f"Loaded shortcuts from {config_path}")
 
     def bind_shortcut(self,to_bind:List[Shortcut]|Shortcut,bindings:List[ShortcutBinding]|ShortcutBinding) -> None:
-        # TODO: test bind_shortcut function
         binging_conditions,messege = self._check_binding_conditions(bingings=bindings, shortcut=to_bind)
 
-        def check_conditions(binding: ShortcutBinding, shortcut: Shortcut) -> bool:
-            shocrtcut_id, binding_id = shortcut.id,binding.id
-            return binding_id == shocrtcut_id
-        if binging_conditions:
-            AppLogger.get().info(messege)
-            for shortcut, binding in zip(to_bind, bindings):
-                if not check_conditions(binding, shortcut):
-                    AppLogger.get().error(f"Binding conditions are not met for {binding.id} and {shortcut.id}")
-                    continue
-                shortcut.bingings = binding
-                self.shortcut_registry.register(shortcut)
-                self.shortcut_manager.register(binding)
-
-        else:
+        if not binging_conditions:
             AppLogger.get().error(messege)
             return None
 
-    def _check_binding_conditions(self, **kwargs) -> Tuple[bool,str]:
-        # TODO: test _check_binding_conditions
-        bingings = kwargs["bingings"]
+        AppLogger.get().info(messege)
+
+        if isinstance(to_bind, Shortcut) and isinstance(bindings, ShortcutBinding):
+            to_bind = [to_bind]
+            bindings = [bindings]
+
+        for shortcut, binding in zip(to_bind, bindings):
+            if shortcut.id != binding.id:
+                AppLogger.get().error(f"Binding conditions are not met for {binding.id} and {shortcut.id}")
+                shortcut.bingings = None
+                continue
+            shortcut.bingings = binding
+            self.shortcut_registry.register(shortcut)
+            self.shortcut_manager.register(binding)
+
+    def _check_binding_conditions(self, **kwargs) -> Tuple[bool, str]:
+        bindings = kwargs["bingings"]
         shortcut = kwargs["shortcut"]
-        list_condition = isinstance(bingings, list) and isinstance(shortcut, list)
-        individual_condition = isinstance(bingings, ShortcutBinding) and isinstance(shortcut, Shortcut)
 
-        if list_condition or individual_condition:
-            if not list_condition and  individual_condition:
-                return (False, "Binding conditions are not met, list expected")
-            if not individual_condition and not list_condition:
-                return (False, "Binding conditions are not met, individual expected")
-            if len(bingings) != len(shortcut):
+        list_condition = isinstance(bindings, list) and isinstance(shortcut, list)
+        individual_condition = isinstance(bindings, ShortcutBinding) and isinstance(
+            shortcut, Shortcut
+        )
+
+        if list_condition:
+            # List mode
+            if not all(isinstance(b, ShortcutBinding) for b in bindings):
+                return (
+                    False,
+                    "Binding conditions are not met, bindings list has invalid types",
+                )
+            if not all(isinstance(s, Shortcut) for s in shortcut):
+                return (
+                    False,
+                    "Binding conditions are not met, shortcuts list has invalid types",
+                )
+            if len(bindings) != len(shortcut):
                 return (False, "Binding conditions are not met, length mismatch")
-
             return (True, "Binding conditions are met")
+
+        elif individual_condition:
+            return (True, "Binding conditions are met")
+
+        else:
+            return (
+                False,
+                "Binding conditions are not met, expected either both lists or both single objects",
+            )
 
     def handle_shortcut(self, shortcuts: List[Shortcut]):
         self.shortcut_manager.handle_key_event(shortcuts, self.shortcut_registry,self.app)
@@ -89,7 +108,7 @@ class ShortcutViewModel:
         ShortcutManager.save_to_file(self.config_path, self._pending_changes)
 
     def load_from_file(self, path: str) -> Optional[Shortcut]:
-        #TODO : test load_from_file function
+        # TODO : test load_from_file function
         if not os.path.exists(path):
             AppLogger.get().error(f"There are no file or directory: {path}")
             return None
@@ -99,12 +118,14 @@ class ShortcutViewModel:
             AppLogger.get().error(f"[ShortcutViewModel] Import failed: {e}")
             return None
 
-    def export_shortcuts(self, path: str)->None:
-        #TODO : test export_shortcuts function
+    def export_shortcuts(self, path: str) -> None:
         try:
+            if not os.path.isdir(os.path.dirname(path)):
+                raise OSError(f"Invalid directory: {os.path.dirname(path)}")
             ShortcutManager.save_to_file(path, self.shortcut_registry.list_all())
         except OSError as e:
             AppLogger.get().error(f"[ShortcutViewModel] Export failed: {e}")
+            raise
 
     def reset_to_defaults(self)->None:
         defaults = ShortcutManager.get_defaults()

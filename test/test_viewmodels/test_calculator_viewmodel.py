@@ -1,9 +1,7 @@
-from src.data.calculator_data import CalculatorData
-from src.viewmodels.calculator_ViewModel import CalculatorViewModel
-from unittest.mock import MagicMock
-
 import pytest
-
+from unittest.mock import MagicMock
+from src.viewmodels.calculator_ViewModel import CalculatorViewModel
+from src.data.calculator_data import CalculatorData
 
 @pytest.fixture
 def calculator_viewmodel():

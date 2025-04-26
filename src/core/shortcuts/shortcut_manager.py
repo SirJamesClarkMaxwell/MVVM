@@ -1,16 +1,15 @@
 from typing import Callable, Dict, List, Any
 import json
 from dataclasses import asdict
-from core.logger import AppLogger
-from .shortcut import Shortcut
-from .shortcut_context import ShortcutContext
-from .shortcut_registry import ShortcutRegistry
+from src.core.logger import AppLogger
+from src.core.shortcuts.shortcut import Shortcut, ShortcutBinding
+from src.core.shortcuts.shortcut_context import ShortcutContext
+from src.core.shortcuts.shortcut_registry import ShortcutRegistry
 
 
 class ShortcutManager:
     def __init__(self, context_service: ShortcutContext):
         self.context_service = context_service
-        
 
     def handle_key_event(
         self, keys: List[str], registry: ShortcutRegistry, app: Any
@@ -52,3 +51,8 @@ class ShortcutManager:
             ),
             # Add more defaults as needed
         ]
+
+    def register(self, binding: ShortcutBinding) -> None:
+        AppLogger.get().info(f"Registering binding: {binding.id}")
+        # Add logic to register the binding if necessary
+        pass

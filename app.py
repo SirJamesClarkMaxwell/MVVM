@@ -1,5 +1,6 @@
 import os, sys
 from typing import Any, List, Self
+from webbrowser import get
 
 from imgui_bundle import hello_imgui, imgui
 
@@ -25,7 +26,7 @@ class App:
         self.vm_store: dict[str:Any] = {}  # optional: {"calculator": vm, ...}
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
-        self.file_dialog = None
+        self.file_dialog = FileDialogController(self)
         self.project_path = os.path.abspath(os.curdir)
 
     def initialize(self):
@@ -92,24 +93,26 @@ class App:
     def handle_shortcuts(self):
         io = imgui.get_io()
         keys = []
+        self.last_shortcut_frame = getattr(self, "last_shortcut_frame", -1)
         for key in range(513, 666):
-            #FIXME change this range to be more generic
-            modifiers = []
-            if io.key_ctrl:
-                modifiers.append("Ctrl")
-            if io.key_shift:
-                modifiers.append("Shift")
-            if io.key_alt:
-                modifiers.append("Alt")
-            if io.key_super:
-                modifiers.append("Super")
-            key_name = imgui.get_key_name(imgui.Key(key))
-            if not key_name:
-                continue
-            full_key = "+".join(modifiers + [key_name])
-            keys.append(full_key)
+            if imgui.is_key_pressed(imgui.Key(key),repeat=False):
+                modifiers = []
+                if io.key_ctrl:
+                    modifiers.append("Ctrl")
+                if io.key_shift:
+                    modifiers.append("Shift")
+                if io.key_alt:
+                    modifiers.append("Alt")
+                if io.key_super:
+                    modifiers.append("Super")
 
-        if keys:
+                key_name = imgui.get_key_name(imgui.Key(key))
+                if key_name:
+                    full_key = "+".join(modifiers + [key_name])
+                    keys.append(full_key)
+
+        if keys and (self.last_shortcut_frame != imgui.get_frame_count()):
+            self.last_shortcut_frame = imgui.get_frame_count()
             self.vm_store["Settings"].shortcut_viewmodel.handle_shortcut(keys)
 
     def create_dockable_windows(self):
@@ -122,8 +125,6 @@ class App:
         log_window.dock_space_name = "MainDockSpace"
         log_window.gui_function = hello_imgui.log_gui
         self.dockable_windows.append(log_window)
-
-        self.file_dialog = FileDialogController(self)
 
     def add_dockable_window_for_panel(self, label):
         window = hello_imgui.DockableWindow()
@@ -189,10 +190,7 @@ class App:
             )
             if not os.path.exists(path):
                 AppLogger.get().error(f"{path} don't exist")
-            content = ""
-            with open(path, "r",encoding="utf-7") as f:
-                content = f.read()
-            editor_vm.open_script(path, content)
+            editor_vm.open_script(path)
             AppLogger.get().info(f"📂 Loaded script: {path}")
         except OSError as e:
             AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
@@ -216,8 +214,9 @@ class App:
 
         try:
             loaded_shortcuts = shortcut_viewmodel.load_from_file(filepath)
-            for shortcut in loaded_shortcuts:
-                shortcut_viewmodel.bind_shortcut(shortcut, shortcut.bingings)
+            bindings = create_global_shortcut_bindings(self)
+            for shortcut,bind in zip(loaded_shortcuts,bindings):
+                shortcut_viewmodel.bind_shortcut(shortcut, bind)
                 shortcut_viewmodel.shortcut_registry.register(shortcut)
             # shortcut_viewmodel.bind_shortcuts(loaded_shortcuts)
         except OSError as e:
@@ -244,3 +243,5 @@ class App:
     def shutdown(self):
         sys.exit(0)
 
+    def get_project_path(self) -> str:
+        return self.project_path

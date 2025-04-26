@@ -1,9 +1,8 @@
-
 from typing import List, Optional
 
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
-from .shortcut import Shortcut
+from src.core.shortcuts.shortcut import Shortcut
 
 
 class ShortcutRegistry:
@@ -48,4 +47,3 @@ class ShortcutRegistry:
             )
             return None
         return self._shortcuts[shortcut_id]
-

@@ -1,6 +1,6 @@
-from core.shortcuts.shortcut_registry import ShortcutRegistry
-from core.shortcuts.shortcut_context import ShortcutContext
-from core.shortcuts.shortcut_manager import ShortcutManager
+from src.core.shortcuts.shortcut_registry import ShortcutRegistry
+from src.core.shortcuts.shortcut_context import ShortcutContext
+from src.core.shortcuts.shortcut_manager import ShortcutManager
 
 class AppSettings:
     def __init__(self):

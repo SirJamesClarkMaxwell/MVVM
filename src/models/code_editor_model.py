@@ -1,6 +1,6 @@
 import os
 
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
 
 class CodeEditorModel:

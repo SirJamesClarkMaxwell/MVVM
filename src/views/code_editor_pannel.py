@@ -3,13 +3,13 @@ from imgui_bundle import imgui, imgui_ctx
 try:
     from imgui_bundle import imgui_color_text_edit
 except ImportError:
-    from core.logger import AppLogger
+    from src.core.logger import AppLogger
     AppLogger.get().error(
         "Failed to import imgui_color_text_edit. Code highlighting will be disabled.")
     imgui_color_text_edit = None
 
-from core.logger import AppLogger
-from views import Panel
+from src.core.logger import AppLogger
+from src.views import Panel
 
 
 class CodeEditorPanel(Panel):

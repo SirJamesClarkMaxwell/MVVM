@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import  Optional, Callable
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
 
 class FileRouter:
@@ -37,8 +37,8 @@ class FileRouter:
         raise NotImplementedError("Folder routing is not implemented yet.")
 
     def _handle_text(self, filepath: str)->None:
-        editor_vm = self.app.vm_store["CodeEditor"]
-        editor_vm.load_file(filepath)
+        editor_vm = self.app.vm_store["DevTools"]
+        editor_vm.open_script(filepath)
         AppLogger.get().info(f"Opened Text file of: {filepath}")
 
     def _handle_image(self, filepath: str) -> None:

@@ -1,6 +1,6 @@
 from dataclasses import dataclass,field
 from typing import List, Optional, Any, Callable, Dict
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
 @dataclass
 class ShortcutBinding:
@@ -37,8 +37,7 @@ class Shortcut:
         args, kwargs = (), {}
 
         if self.bingings.pre_process:
-            result = self.bingings.pre_process(app)
-            args = result
+            args = [self.bingings.pre_process(app)]
 
         result = self.bingings.function(*args, **kwargs)
 

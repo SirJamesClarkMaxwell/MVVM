@@ -1,4 +1,4 @@
-from core.logger import AppLogger
+from src.core.logger import AppLogger
 
 
 def print_last_operation(vm_store):
