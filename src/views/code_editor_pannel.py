@@ -110,8 +110,10 @@ class CodeEditorPanel(Panel):
     def render_code_space(self):
         to_close = []
         for name, (editor, tab) in self.view_model.editors.items():
-            opened, visible = imgui.begin(name, True)
+            # Use full unique ID but show a user-friendly label
 
+            window_id = f"{name}##{tab.filename}"
+            opened, visible = imgui.begin(window_id, True)
             if visible:
                 self.view_model.data.current_tab_name = name
                 imgui.text(f"Editing: {name}")
@@ -121,21 +123,11 @@ class CodeEditorPanel(Panel):
                     new_content = editor.update_model()
                     if new_content != tab.content:
                         tab.content = new_content
-                        tab.is_dirty = True
-                else:
-                    # Fallback to basic input text
-                    changed, new_content = imgui.input_text_multiline(
-                        "##editor",
-                        tab.content,
-                        imgui.get_content_region_avail(),
-                        0
-                    )
-                    if changed:
-                        tab.content = new_content
+                        self.view_model.save_script(name)
                         tab.is_dirty = True
             imgui.end()
 
-            if not opened:
+            if not visible:
                 if tab.is_dirty:
                     self.view_model.confirming_close_name = name
                 else:

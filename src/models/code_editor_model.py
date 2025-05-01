@@ -35,8 +35,6 @@ class CodeEditorModel:
             AppLogger.get().debug(f"Saved file: {path} ({len(content)} bytes)")
         except Exception as e:
             AppLogger.get().error(f"Failed to save file '{path}': {e}")
-            raise
-
     def list_scripts(self):
         AppLogger.get().debug(f"Listing scripts in: {self.script_dir}")
         try:

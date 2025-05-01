@@ -78,7 +78,7 @@ class App:
         for task in completed_tasks:
             result = task.result()
             if result is not None:
-                AppLogger.get().info(f"Loaded CSV: {result.shape[0]} rows")
+                AppLogger.get().info(f"Finished task {task.label}")
 
     def on_file_selected(self, path: str):
         try:
