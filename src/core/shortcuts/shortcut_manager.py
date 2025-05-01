@@ -19,15 +19,30 @@ class ShortcutManager:
         if not shortcut:
             return
         try:
-            app.thread_pool.submit(shortcut.id,shortcut.__call__,app)
+            if shortcut.enable_threading:
+                app.thread_pool.submit(shortcut.id,shortcut.__call__,app)
+            else:
+                shortcut(app)
         except ValueError as e:
             AppLogger.get().error(f"Shortcut '{shortcut.id}' failed: {e}")
 
+
     @staticmethod
     def load_from_file(filepath: str) -> list[Shortcut]:
-        AppLogger.get().info(f"Loading shortcuts from file: {filepath}")
         with open(filepath, "r", encoding="utf-8") as file:
             data = json.load(file)
+
+        for item in data:
+            item.setdefault("enable_threading", False)
+
+            # Ensure context is always a list
+            if isinstance(item.get("context"), str):
+                item["context"] = [item["context"]]
+
+            # Optional: same for category if needed
+            if isinstance(item.get("category"), list):
+                item["category"] = ", ".join(item["category"])
+
         return [Shortcut(**item) for item in data]
 
     @staticmethod
@@ -48,6 +63,7 @@ class ShortcutManager:
                 category="File Operations",
                 context=["Global"],
                 description="Open a file",
+                enable_threading=True
             ),
             # Add more defaults as needed
         ]

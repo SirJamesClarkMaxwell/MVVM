@@ -21,8 +21,8 @@
     "description": "Open entire directory"
   },
   {
-    "id": "close app",
-    "keys": ["Ctrl+w"],
+    "id": "shutdown app",
+    "keys": ["Ctrl+shift+w"],
     "category": "App",
     "context": ["Global"],
     "description": "Close entire application"

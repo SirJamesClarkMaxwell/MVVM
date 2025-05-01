@@ -1,4 +1,4 @@
-import os
+import os,sys
 from time import sleep
 from types import NoneType
 from typing import Any, Callable, List
@@ -7,22 +7,21 @@ from src.core.shortcuts.shortcut import Shortcut, ShortcutBinding
 from src.core.logger import AppLogger
 
 
-class App:
-    ...
+
 
 # * Global shortcuts
-def create_global_shortcut_bindings(app:App) -> list[ShortcutBinding]:
+def create_global_shortcut_bindings(app:Any) -> list[ShortcutBinding]:
 
     bindigs = []
 
-    def get_project_path(app: App) -> str:
+    def get_project_path(app: Any) -> str:
         return app.project_path
 
-    def register_opening_file(app: App) -> None:
+    def register_opening_file(app: Any) -> None:
         project_path = get_project_path(app)
         app.file_dialog.open_files(project_path)
 
-    def open_file(app: App, file_path: str) -> None:
+    def open_file(app: Any, file_path: str) -> None:
         while  len(app.file_dialog.paths_to_route) is  0:
             sleep(0.1)
         for path in app.file_dialog.paths_to_route:
@@ -33,42 +32,58 @@ def create_global_shortcut_bindings(app:App) -> list[ShortcutBinding]:
         app.file_dialog.paths_to_route = []
         return None
 
-    def print_file_path(app: App, file_path: str) -> None:
+    def print_file_path(app: Any, file_path: str) -> None:
         AppLogger.get().info(
             f"Printing file path from: shortcut_bindings.open_file: {file_path}"
         )
         return None
 
-    def print_folder_content(app: App, directory_path: str) -> None:
+    def print_folder_content(app: Any, directory_path: str) -> None:
         AppLogger.get().info(f"Directory path: {directory_path}")
         for item in os.listdir(directory_path):
             AppLogger.get().info(f"Item: {item}")
 
-    def save_project(app: App) -> None:
+    def save_project(app: Any) -> None:
         AppLogger.get().error(
             "Functionality of saving Project has not been implemented yet!"
         )
         raise NotImplementedError("This functionality has not been implemented yet!")
 
     open_file_obj = ShortcutBinding(
-        "open_file",
+        "Open File",
         pre_process=register_opening_file,
         function=open_file,
         post_process=print_file_path,
     )
 
     save_project_obj = ShortcutBinding(
-        "save_project",
+        "Save Project",
         pre_process=get_project_path,
         function=save_project,
         post_process=print_file_path,
     )
 
     open_directory = ShortcutBinding(
-        "open_directory",
+        "Open Directory",
         pre_process=get_project_path,
         function=app.file_dialog.open_folder,
         post_process=print_folder_content,
     )
+    shutdown_app = ShortcutBinding(
+        "App Shutdown",
+        pre_process=save_project,
+        function= lambda app, *args,**kwargs: sys.exit(1),
+        post_process=lambda app, *args,**kwargs: None
+        
+    )
 
-    return bindigs + [open_file_obj, save_project_obj, open_directory]
+    return bindigs + [open_file_obj, save_project_obj, open_directory,shutdown_app]
+def create_dev_tool_shortcut_binding(app:Any)->list[ShortcutBinding]:
+    bindigs = []
+    run_active_script = ShortcutBinding(
+        "Run Script",
+        pre_process=None,
+        function=None,
+        post_process=None
+    )
+    return bindigs + [run_active_script]

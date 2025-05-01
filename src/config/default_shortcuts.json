@@ -4,28 +4,41 @@
     "keys": ["Ctrl+O"],
     "category": "File Operations",
     "context": ["Global"],
-    "description": "Open a file"
+    "description": "Open a file",
+    "enable_threading": true
+  },
+  {
+    "id": "Open Directory",
+    "keys": ["Ctrl+D"],
+    "category": ["File Operation"],
+    "context": "Global",
+    "description": "Open entire directory"
+  },
+  {
+    "id": "Save Project",
+    "keys": ["Ctrl+S"],
+    "category": "",
+    "context": ["File Operation"],
+    "description": "Save a file",
+    "enable_threading": false
+
   },
   {
     "id": "Run Script",
     "keys": ["Ctrl+R"],
     "category": "Dev-Tools",
     "context": ["Development"],
-    "description": "Run active script"
+    "description": "Run active script",
+    "enable_threading": false
   },
+
   {
-    "id": "save files",
-    "keys": ["Ctrl+S"],
-    "category": "",
-    "context": ["File Operation"],
-    "description": "Save a file"
-  },
-  {
-    "id": "close app",
+    "id": "App Shutdown",
     "keys": ["Ctrl+Shift+W"],
     "category": "App",
     "context": ["Global"],
-    "description": "Close entire application"
+    "description": "Close entire application",
+    "enable_threading": false
   }
   
 

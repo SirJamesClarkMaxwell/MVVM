@@ -211,11 +211,14 @@ class App:
             return
 
         cwd = os.path.abspath(os.curdir)
-        filepath = os.path.join(cwd, "src/config/shortcuts.json")
+        filepath = os.path.join(cwd, ".\src\config\default_shortcuts.json")
 
         try:
             loaded_shortcuts = shortcut_viewmodel.load_from_file(filepath)
             bindings = create_global_shortcut_bindings(self)
+            bindings += create_dev_tool_shortcut_binding(self)
+            loaded_shortcuts.sort()
+            bindings.sort()
             for shortcut,bind in zip(loaded_shortcuts,bindings):
                 shortcut_viewmodel.bind_shortcut(shortcut, bind)
                 shortcut_viewmodel.shortcut_registry.register(shortcut)
@@ -224,7 +227,7 @@ class App:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
 
     def close_active_window(self):
-        #TODO: implement close_active_window to remove focused panel from view
+        # TODO: implement close_active_window to remove focused panel from view
         AppLogger.get().info("Requested to close active window (stub)")
 
     def save_state(self) -> None:

@@ -2,14 +2,14 @@ from dataclasses import dataclass,field
 from typing import List, Optional, Any, Callable, Dict
 from src.core.logger import AppLogger
 
-@dataclass
+@dataclass(order=True)
 class ShortcutBinding:
-    id: str = field(default="")
+    id: str = field(default="",compare=True)
     function: Callable[..., Any] = field(default=None)
     pre_process: Optional[Callable[[Any], Any]] = field(default=None)
     post_process: Optional[Callable[[Any, Any], None]] = field(default=None)
 
-@dataclass
+@dataclass(order=True)
 class Shortcut:
     """
     Shortcut class represents a keyboard shortcut in the application.
@@ -26,6 +26,7 @@ class Shortcut:
     category: str
     context: List[str]
     description: str
+    enable_threading: bool
     bingings: ShortcutBinding = field(default_factory=ShortcutBinding)
 
     def __call__(self, app: Any) -> None:
@@ -43,3 +44,8 @@ class Shortcut:
 
         if self.bingings.post_process:
             self.bingings.post_process(app, result)
+    def __eq__(self, binding:ShortcutBinding)->bool:
+        return self.id == binding.id
+    def __nq__(self, binding:ShortcutBinding)->bool:
+        return self.id == binding.id
+    

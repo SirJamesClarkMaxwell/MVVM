@@ -11,7 +11,11 @@ from src.core.shortcuts import ShortcutManager, ShortcutRegistry, ShortcutContex
 
 class ShortcutViewModel:
 
-    def __init__(self,app, config_path: str = "src/config/shortcuts.json"):
+    def __init__(
+        self,
+        app,
+        config_path: str = ".\src\config\default_shortcuts.json",
+    ):
         self.shortcut_manager = ShortcutManager(ShortcutContext())
         self.shortcut_registry = ShortcutRegistry()
         self.config_path = config_path
@@ -34,9 +38,10 @@ class ShortcutViewModel:
         if isinstance(to_bind, Shortcut) and isinstance(bindings, ShortcutBinding):
             to_bind = [to_bind]
             bindings = [bindings]
-
+        to_bind.sort()
+        bindings.sort()
         for shortcut, binding in zip(to_bind, bindings):
-            if shortcut.id != binding.id:
+            if shortcut != binding:
                 AppLogger.get().error(f"Binding conditions are not met for {binding.id} and {shortcut.id}")
                 shortcut.bingings = None
                 continue
