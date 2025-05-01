@@ -31,10 +31,11 @@ class FileRouter:
         else:
             self._handle_unknown(filepath)
 
-    def route_folder(self, folder_path: str)->None:
-        # TODO: Implement folder routing logic
-        AppLogger.get().info(f"Routing folder: {folder_path}")
-        raise NotImplementedError("Folder routing is not implemented yet.")
+
+    def route_folder(self, folder_path: str) -> None:
+        pass
+        #self.print_folder_content(folder_path)  # <-- This prints folder content
+
 
     def _handle_text(self, filepath: str)->None:
         editor_vm = self.app.vm_store["DevTools"]

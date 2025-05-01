@@ -185,13 +185,14 @@ class App:
             if not editor_vm:
                 AppLogger.get().error("There are not DevTools panel")
                 return None
-            path = os.path.join(
+            path_lp = os.path.join(
                 os.path.abspath(os.path.curdir), "src","Scripts", "live_plot.py"
             )
-            if not os.path.exists(path):
-                AppLogger.get().error(f"{path} don't exist")
-            editor_vm.open_script(path)
-            AppLogger.get().info(f"📂 Loaded script: {path}")
+            path_test = os.path.join(
+                os.path.abspath(os.path.curdir), "src","Scripts", "test_script.py")
+            editor_vm.open_script(path_lp)
+            editor_vm.open_script(path_test)
+            AppLogger.get().info(f"📂 Loaded script: {path_lp} and {path_test}")
         except OSError as e:
             AppLogger.get().error(f"❌ Failed to auto-load live_plot.py: {e}")
 

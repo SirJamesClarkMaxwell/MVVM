@@ -30,7 +30,7 @@ class Shortcut:
 
     def __call__(self, app: Any) -> None:
         AppLogger.get().info(f"Executing shortcut '{self.id}'")
-        
+
         if not self.bingings.function:
             raise ValueError("Missing target function")
 
@@ -39,7 +39,7 @@ class Shortcut:
         if self.bingings.pre_process:
             args = [self.bingings.pre_process(app)]
 
-        result = self.bingings.function(*args, **kwargs)
+        result = self.bingings.function(app,*args, **kwargs)
 
         if self.bingings.post_process:
-            self.bingings.post_process(result, app)
+            self.bingings.post_process(app, result)

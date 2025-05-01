@@ -33,7 +33,7 @@ class CodeEditorViewModel:
     def __init__(self, app):
         self.model =  CodeEditorModel()
         self.data =  CodeEditorData()
-        
+
         self.editors: dict[str, tuple[EditorUI, ScriptTab]] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None
@@ -45,11 +45,14 @@ class CodeEditorViewModel:
         self.runtime_panels: dict[str, RuntimePanel] = {}
 
     def open_script(self, path: str):
-        content = self.model.read_file(path)
+        name = os.path.basename(path)
         AppLogger.get().debug(path)
-        name = path.split("\\")[-1]
+
+        if name not in self.editors:
+            content = self.model.read_file(path)
+            self.editors[name] = (EditorUI(content), ScriptTab(name, content, path))
+
         self.data.current_tab_name = name
-        self.editors[name] = (EditorUI(content), ScriptTab(name, content, path))
 
     def request_close_editor(self, name: str):
         if name in self.editors:

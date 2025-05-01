@@ -7,11 +7,18 @@
     "description": "Open a file"
   },
   {
-    "id": "save files",
+    "id": "save_file",
     "keys": ["Ctrl+S"],
-    "category": "",
-    "context": ["File Operation"],
+    "category": ["File Operation"],
+    "context": "Global",
     "description": "Save a file"
+  },
+  {
+    "id": "open_directory",
+    "keys": ["Ctrl+D"],
+    "category": ["File Operation"],
+    "context": "Global",
+    "description": "Open entire directory"
   },
   {
     "id": "close app",

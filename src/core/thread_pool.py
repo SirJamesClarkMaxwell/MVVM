@@ -19,11 +19,11 @@ class ThreadPool:
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self.active_tasks: list[Task] = []
 
-    def submit(self, label: str, fn, *args, **kwargs) -> Task:
+    def submit(self, label: str, fn, *args, **kwargs) -> None:
         future = self.executor.submit(fn, *args, **kwargs)
         task = Task(label, future)
         self.active_tasks.append(task)
-        return task
+        # return task
 
     def get_completed(self) -> list[Task]:
         done = [t for t in self.active_tasks if t.is_done()]

@@ -1,3 +1,4 @@
+import os
 from imgui_bundle import imgui, implot
 import numpy as np
 
@@ -7,12 +8,13 @@ end_x = 2 * np.pi
 steps_number = 100
 plot_func_idx = 0
 plot_func_list = [lambda x: np.sin(x), lambda x: np.cos(x)]
-
+xs,ys = [],[]
+func = plot_func_list[plot_func_idx]
 # Create ImPlot context once at start
 implot.create_context()
 
 def render():
-    global start_x, end_x, steps_number, plot_func_idx
+    global start_x, end_x, steps_number, plot_func_idx,xs,ys,func
 
     show_panel = imgui.begin(panel_title)
     if show_panel:
@@ -21,13 +23,13 @@ def render():
         _, end_x = imgui.slider_float("End x", end_x, -2 * np.pi, 4 * np.pi)
         _, steps_number = imgui.slider_int("Points", steps_number, 1, 1000)
         _, plot_func_idx = imgui.combo("Function", plot_func_idx, ["sin", "cos"])
+        func = plot_func_list[plot_func_idx]
         imgui.end()
     
-    func = plot_func_list[plot_func_idx]
-    
     if implot.begin_plot("Live Plot", imgui.ImVec2(500, 400)):
-        x = np.linspace(start=start_x, stop=end_x, num=steps_number)
-        y = func(x)
+        xs = np.linspace(start=start_x, stop=end_x, num=steps_number)
+        ys = func(xs)
         implot.setup_axes("x", "y")
-        implot.plot_line("func", x, y)
+        implot.plot_line("func", xs, ys)
         implot.end_plot()
+    

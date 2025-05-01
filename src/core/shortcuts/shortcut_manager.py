@@ -19,7 +19,7 @@ class ShortcutManager:
         if not shortcut:
             return
         try:
-            shortcut(app)
+            app.thread_pool.submit(shortcut.id,shortcut.__call__,app)
         except ValueError as e:
             AppLogger.get().error(f"Shortcut '{shortcut.id}' failed: {e}")
 

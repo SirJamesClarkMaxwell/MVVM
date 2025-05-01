@@ -1,7 +1,7 @@
-
+import os
 from typing import Dict
 from imgui_bundle import portable_file_dialogs as pfd
-from .file_router import FileRouter
+from src.core.file_router import FileRouter
 
 
 HandleType = pfd.open_file| pfd.select_folder| pfd.save_file
@@ -15,6 +15,7 @@ class FileDialogController:
         }
         self.file_router = FileRouter(app)
         self.app = app
+        self.paths_to_route = []
 
     def open_files(self, default_path: str) -> None:
         title: str = "Select File"
@@ -26,7 +27,7 @@ class FileDialogController:
 
     def open_folder(self, default_path: str):
         title = "Select Folder"
-        directory_options: pfd.opt = pfd.opt.directory
+        directory_options: pfd.opt = pfd.opt.multiselect
         self._hangles["open_folder_handle"] = pfd.select_folder(
             title=title,
             default_path=default_path,
@@ -38,13 +39,17 @@ class FileDialogController:
             filters = ["*.*"]
         self._hangles["save_file_handle"] = pfd.save_file(title, default_path, filters=filters)
 
+
     def render(self):
         for handle_name, handle in self._hangles.items():
-            if handle and handle.ready():
+            if handle and handle.ready() and handle.result():
                 result = handle.result()
-                if isinstance(result, list):
-                    for path in result:
-                        self.file_router.route(path)
-                else:
-                    self.file_router.route(result)
+                self.paths_to_route = [*result] if isinstance(result ,list) else [result]
                 self._hangles[handle_name] = None
+
+
+    def route_path(self, path: str):
+        if os.path.isdir(path):
+            self.file_router.route_folder(path)  # <-- Will now call print_folder_content!
+        else:
+            self.file_router.route(path)
