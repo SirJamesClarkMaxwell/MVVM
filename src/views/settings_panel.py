@@ -77,10 +77,10 @@ class SettingsPanel(Panel):
         imgui.same_line()
         if imgui.button("Import"):
             # Ideally open file dialog here
-            shortcut_vm.import_shortcuts("config/imported_shortcuts.json")
+            shortcut_vm.import_shortcuts("src/config/imported_shortcuts.json")
         imgui.same_line()
         if imgui.button("Export"):
-            shortcut_vm.export_shortcuts("config/exported_shortcuts.json")
+            shortcut_vm.export_shortcuts("src/config/exported_shortcuts.json")
         imgui.same_line()
         if imgui.button("Reset to Defaults"):
             shortcut_vm.reset_to_defaults()

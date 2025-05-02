@@ -9,8 +9,12 @@ class ShortcutRegistry:
     def __init__(self) -> None:
         self._shortcuts: List[Shortcut] = []
 
-    def register(self, shortcut: Shortcut):
-        self._shortcuts.append(shortcut)
+    def register(self, shortcut: Shortcut|List[Shortcut]):
+        if isinstance(shortcut,Shortcut):
+            self._shortcuts.append(shortcut)
+        else:
+            for item in shortcut:
+                self._shortcuts.append(item)
 
     def unregister(self, shortcut_id: str):
         self._shortcuts = [s for s in self._shortcuts if s.id != shortcut_id]
@@ -27,10 +31,12 @@ class ShortcutRegistry:
             and s.id != new_shortcut.id
         ]
 
-    def get_by_keys_and_context(
-        self, keys: List[str], context: str
-    ) -> Optional[Shortcut]:
+
+    def get_by_keys_and_context(self, keys: List[str], context: str) -> Optional[Shortcut]:
         for item in self._shortcuts:
+            if not isinstance(item, Shortcut):
+                AppLogger.get().error(f"Non-shortcut in registry: {type(item)} → {item}")
+                continue
             if set(item.keys) == set(keys) and (
                 context in item.context or "Global" in item.context
             ):

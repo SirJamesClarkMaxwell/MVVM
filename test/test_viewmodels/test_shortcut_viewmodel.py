@@ -23,6 +23,7 @@ def test_check_binding_conditions_valid_list(viewmodel):
             category="File",
             context=["Global"],
             description="Open a file",
+            enable_threading=False
         ),
         Shortcut(
             id="save_file",
@@ -30,6 +31,7 @@ def test_check_binding_conditions_valid_list(viewmodel):
             category="File",
             context=["Global"],
             description="Save a file",
+            enable_threading=False
         ),
     ]
     bindings = [
@@ -51,6 +53,7 @@ def test_check_binding_conditions_valid_individual(viewmodel):
         category="File",
         context=["Global"],
         description="Open a file",
+        enable_threading=False,
     )
     binding = ShortcutBinding(id="open_file")
 
@@ -69,6 +72,7 @@ def test_check_binding_conditions_length_mismatch(viewmodel):
             category="File",
             context=["Global"],
             description="Open a file",
+            enable_threading=False,
         )
     ]
     bindings = [
@@ -111,11 +115,16 @@ def test_load_from_file_file_not_exists(viewmodel):
         assert result is None
 def test_load_from_file_success(viewmodel):
     mock_shortcut = MagicMock(spec=Shortcut)
-    with patch("os.path.exists", return_value=True), patch(
-        "src.core.shortcuts.ShortcutManager.load_from_file", return_value=mock_shortcut
+    with (
+        patch("os.path.exists", return_value=True),
+        patch(
+            "src.core.shortcuts.ShortcutManager.load_from_file",
+            return_value=[mock_shortcut],
+        ),
     ):
+
         result = viewmodel.load_from_file("valid_file.json")
-        assert result == mock_shortcut
+        assert result == [mock_shortcut]
 def test_load_from_file_os_error(viewmodel):
     with patch("os.path.exists", return_value=True), patch(
         "src.core.shortcuts.ShortcutManager.load_from_file", side_effect=OSError("Error")
@@ -130,8 +139,8 @@ def shortcut_viewmodel():
 
 def test_bind_shortcut_valid(shortcut_viewmodel):
     shortcuts = [
-        Shortcut(id="bind1", keys="Ctrl+A", category="General", context="Global", description="Test shortcut 1"),
-        Shortcut(id="bind2", keys="Ctrl+B", category="General", context="Global", description="Test shortcut 2")
+        Shortcut(id="bind1", keys="Ctrl+A", category="General", context="Global", description="Test shortcut 1",enable_threading=False),
+        Shortcut(id="bind2", keys="Ctrl+B", category="General", context="Global", description="Test shortcut 2",enable_threading=False)
     ]
     bindings = [ShortcutBinding(id="bind1"), ShortcutBinding(id="bind2")]
 
@@ -142,7 +151,14 @@ def test_bind_shortcut_valid(shortcut_viewmodel):
 
 def test_bind_shortcut_invalid_conditions(shortcut_viewmodel):
     shortcuts = [
-        Shortcut(id="bind1", keys="Ctrl+A", category="General", context="Global", description="Test shortcut 1")
+        Shortcut(
+            id="bind1",
+            keys="Ctrl+A",
+            category="General",
+            context="Global",
+            description="Test shortcut 1",
+            enable_threading=False,
+        )
     ]
     bindings = [ShortcutBinding(id="bind2")]
 

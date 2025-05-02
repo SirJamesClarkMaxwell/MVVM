@@ -19,8 +19,8 @@ class App:
         if not cls._instance:
             cls._instance = App()
         return cls._instance
-
     def __init__(self):
+        App._instance = self
         self.panels: dict[str, Panel] = {}
         self.dockable_windows = []
         self.vm_store: dict[str:Any] = {}  # optional: {"calculator": vm, ...}
@@ -245,7 +245,13 @@ class App:
         self.shutdown()
 
     def shutdown(self):
-        sys.exit(0)
+        sys.exit(1)
 
     def get_project_path(self) -> str:
         return self.project_path
+
+    def set_context(self,context:str)->None:
+        AppLogger.get().debug(f"New context {context}")
+        self.vm_store["Settings"].shortcut_viewmodel.set_context(context)
+    def get_context(self)->str:
+        return self.vm_store["Settings"].shortcut_viewmodel.get_context()

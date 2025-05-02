@@ -4,7 +4,7 @@ from imgui_bundle import hello_imgui,imgui
 
 def main():
 
-    app = App()
+    app = App.get()
     runner_params = app.initialize()
     runner_params.imgui_window_params.default_imgui_window_type = \
     hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space|\

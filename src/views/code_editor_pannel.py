@@ -1,5 +1,7 @@
 from imgui_bundle import imgui, imgui_ctx
 
+from src.viewmodels.code_editor_viewmodel import CodeEditorViewModel
+
 try:
     from imgui_bundle import imgui_color_text_edit
 except ImportError:
@@ -13,10 +15,15 @@ from src.views import Panel
 
 
 class CodeEditorPanel(Panel):
-    def __init__(self, view_model):
+    def __init__(self, view_model:CodeEditorViewModel):
         super().__init__(view_model)
 
     def render(self):
+        if imgui.is_window_focused():
+            ctx = self.app.get_context()
+            if ctx != "Development":
+                self.app.set_context("Development")
+                AppLogger.get().debug(f"Shortcut Context has been set to Development")
         avail_x, avail_y = imgui.get_content_region_avail()
         if imgui.begin_table(
             "CodeEditorLayout", 1, 0  # Using 0 for no flags
@@ -125,8 +132,11 @@ class CodeEditorPanel(Panel):
                         tab.content = new_content
                         self.view_model.save_script(name)
                         tab.is_dirty = True
+                if imgui.is_window_focused():
+                    if self.view_model.script_to_run != name:
+                        self.view_model.script_to_run = name
+                        AppLogger.get().debug(f"Set script_to_run to {name}")
             imgui.end()
-
             if not visible:
                 if tab.is_dirty:
                     self.view_model.confirming_close_name = name

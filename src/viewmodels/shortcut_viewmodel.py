@@ -20,11 +20,10 @@ class ShortcutViewModel:
         self.shortcut_registry = ShortcutRegistry()
         self.config_path = config_path
         self._pending_changes: List[Shortcut] = []
-        self.shortcuts: List[Shortcut] = []
-        self.shortcuts = ShortcutManager.load_from_file(config_path)
+        # self.shortcut_registry.register(self.load_from_file(config_path))
         self.app = app
         AppLogger.get().info("Initialized Shortcut ViewModel")
-        AppLogger.get().info(f"Loaded shortcuts from {config_path}")
+        # AppLogger.get().info(f"Loaded shortcuts from {config_path}")
 
     def bind_shortcut(self,to_bind:List[Shortcut]|Shortcut,bindings:List[ShortcutBinding]|ShortcutBinding) -> None:
         binging_conditions,messege = self._check_binding_conditions(bingings=bindings, shortcut=to_bind)
@@ -46,8 +45,8 @@ class ShortcutViewModel:
                 shortcut.bingings = None
                 continue
             shortcut.bingings = binding
-            self.shortcut_registry.register(shortcut)
-            self.shortcut_manager.register(binding)
+            # self.shortcut_registry.register(shortcut)
+            # self.shortcut_manager.register(binding)
 
     def _check_binding_conditions(self, **kwargs) -> Tuple[bool, str]:
         bindings = kwargs["bingings"]
@@ -88,7 +87,7 @@ class ShortcutViewModel:
 
     def get_shortcuts_by_category(self) -> dict[str, List[Shortcut]]:
         categorized = {}
-        for sc in self.shortcut_registry.list_all():
+        for sc in [*self.shortcut_registry.list_all()]:
             categorized.setdefault(sc.category, []).append(sc)
         return categorized
 
@@ -112,13 +111,30 @@ class ShortcutViewModel:
         self.shortcut_registry.replace_all(self._pending_changes)
         ShortcutManager.save_to_file(self.config_path, self._pending_changes)
 
-    def load_from_file(self, path: str) -> Optional[Shortcut]:
-        # TODO : test load_from_file function
+    def set_context(self,context:str)->None:
+        self.shortcut_manager.context_service.set_active_context(context=context)
+    def get_context(self)->str:
+        return self.shortcut_manager.context_service.get_active_context()
+
+    def load_from_file(self, path: str) -> Optional[List[Shortcut]]:
+        # Check if the file exists
         if not os.path.exists(path):
-            AppLogger.get().error(f"There are no file or directory: {path}")
+            AppLogger.get().error(f"File or directory does not exist: {path}")
             return None
         try:
-            return ShortcutManager.load_from_file(path)
+            # Load shortcuts from the file
+            shortcuts = ShortcutManager.load_from_file(path)
+            all_shortcuts = self.shortcut_registry.list_all()
+            new_shortcuts = []
+            for sc in shortcuts:
+                if sc not in all_shortcuts:
+                    new_shortcuts.append(sc)
+
+            # Filter out shortcuts that are already registered
+            # new_shortcuts = [sc for sc in shortcuts if sc not in all_shortcuts]
+
+            AppLogger.get().info(f"Loaded {len(new_shortcuts)} new shortcuts from {path}")
+            return new_shortcuts
         except OSError as e:
             AppLogger.get().error(f"[ShortcutViewModel] Import failed: {e}")
             return None

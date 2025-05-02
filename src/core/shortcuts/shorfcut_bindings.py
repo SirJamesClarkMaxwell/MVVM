@@ -7,8 +7,6 @@ from src.core.shortcuts.shortcut import Shortcut, ShortcutBinding
 from src.core.logger import AppLogger
 
 
-
-
 # * Global shortcuts
 def create_global_shortcut_bindings(app:Any) -> list[ShortcutBinding]:
 
@@ -80,10 +78,32 @@ def create_global_shortcut_bindings(app:Any) -> list[ShortcutBinding]:
     return bindigs + [open_file_obj, save_project_obj, open_directory,shutdown_app]
 def create_dev_tool_shortcut_binding(app:Any)->list[ShortcutBinding]:
     bindigs = []
-    run_active_script = ShortcutBinding(
-        "Run Script",
-        pre_process=None,
-        function=None,
-        post_process=None
+
+    def reload_active_script(app: Any, *args, **kwargs) -> None:
+        AppLogger.get().debug(f"Reloading {app.vm_store["DevTools"].script_to_run}")
+        app.vm_store["DevTools"].reload_current_script()
+
+    def run_currect_script(app: Any, *args, **kwargs) -> None:
+        AppLogger.get().debug(f"Running {app.vm_store["DevTools"].script_to_run}")
+        app.vm_store["DevTools"].reload_script_panels()
+
+    run_active_script_obj = ShortcutBinding(
+        "Run Script", pre_process=None, function=run_currect_script, post_process=None
     )
-    return bindigs + [run_active_script]
+    reload_active_script_obj = ShortcutBinding(
+        "Reload Script",
+        pre_process=None,
+        function=reload_active_script,
+        post_process=None,
+    )
+    reload_and_run_active_script_obj = ShortcutBinding(
+        "Reload and Run Script",
+        pre_process=reload_active_script,
+        function=run_currect_script,
+        post_process=None,
+    )
+    return bindigs + [
+        run_active_script_obj,
+        reload_active_script_obj,
+        reload_and_run_active_script_obj,
+    ]

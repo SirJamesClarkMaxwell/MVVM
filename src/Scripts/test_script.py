@@ -15,6 +15,7 @@ def print_last_operation(vm_store):
         AppLogger.get().info(f"{a} {op} {b} = {res}")
         if None in (a, b, op, res):
             print("⚠️ Some values are missing.")
+            print("⚠️ Some values are missing.")
         else:
             print(f"{a} {op} {b} = {res}")
 

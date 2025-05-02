@@ -1,6 +1,7 @@
 import os
 from imgui_bundle import imgui, implot
 import numpy as np
+from src.core.logger import AppLogger
 
 panel_title = "Test Panel"
 start_x = 0.0
@@ -15,7 +16,7 @@ implot.create_context()
 
 def render():
     global start_x, end_x, steps_number, plot_func_idx,xs,ys,func
-
+    # AppLogger.get().debug("Test Log")
     show_panel = imgui.begin(panel_title)
     if show_panel:
         imgui.text("Hello from script!")
@@ -25,11 +26,10 @@ def render():
         _, plot_func_idx = imgui.combo("Function", plot_func_idx, ["sin", "cos"])
         func = plot_func_list[plot_func_idx]
         imgui.end()
-    
+
     if implot.begin_plot("Live Plot", imgui.ImVec2(500, 400)):
         xs = np.linspace(start=start_x, stop=end_x, num=steps_number)
         ys = func(xs)
         implot.setup_axes("x", "y")
         implot.plot_line("func", xs, ys)
         implot.end_plot()
-    

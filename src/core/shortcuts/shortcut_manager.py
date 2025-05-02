@@ -26,7 +26,6 @@ class ShortcutManager:
         except ValueError as e:
             AppLogger.get().error(f"Shortcut '{shortcut.id}' failed: {e}")
 
-
     @staticmethod
     def load_from_file(filepath: str) -> list[Shortcut]:
         with open(filepath, "r", encoding="utf-8") as file:
@@ -45,14 +44,11 @@ class ShortcutManager:
 
         return [Shortcut(**item) for item in data]
 
+
     @staticmethod
-    def save_to_file(filepath: str, shortcuts: list[Shortcut]) -> None:
-        AppLogger.get().info(
-            f"\
-            ShortcutModel.save_to_file: saving shortcuts to file: {filepath}"
-        )
-        with open(filepath, "w", encoding="utf8") as file:
-            json.dump([asdict(s) for s in shortcuts], file, indent=4)
+    def save_to_file(filepath: str, shortcuts: list[Shortcut]):
+        with open(filepath, "w", encoding="utf-8") as file:
+            json.dump([s.to_dict() for s in shortcuts], file, indent=4)
 
     @staticmethod
     def get_defaults() -> list[Shortcut]:

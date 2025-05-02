@@ -33,16 +33,17 @@ class CodeEditorViewModel:
     def __init__(self, app):
         self.model =  CodeEditorModel()
         self.data =  CodeEditorData()
-
         self.editors: dict[str, tuple[EditorUI, ScriptTab]] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None
+        self.script_to_run:str = ""
         self.scope = {
             "app": app,
             "vm_store": app.vm_store,
             "log": AppLogger.get(),
         }
         self.runtime_panels: dict[str, RuntimePanel] = {}
+        self.app = app
 
     def open_script(self, path: str):
         name = os.path.basename(path)
@@ -76,7 +77,7 @@ class CodeEditorViewModel:
                 AppLogger.get().warning(f"⚠️ No file path for script '{name}'")
 
     def run_current_script(self):
-        name = self.data.current_tab_name
+        name = self.script_to_run
         if name in self.editors:
             editor, tab = self.editors[name]
 
@@ -94,7 +95,7 @@ class CodeEditorViewModel:
                     AppLogger.get().error(f"Script error in {name}:\n{error_output}")
 
     def reload_current_script(self):
-        name = self.data.current_tab_name
+        name = self.script_to_run
         if name in self.editors:
             editor, tab = self.editors[name]
             if tab.filepath and os.path.exists(tab.filepath):
@@ -140,16 +141,18 @@ class CodeEditorViewModel:
 
     def reload_script_panels(self):
         dynamic_panels = {}
-        for name, (editor, tab) in self.editors.items():
-            local_scope = self.scope.copy()
-            try:
-                exec(tab.content, local_scope)
-                panel_title = local_scope.get("panel_title", name)
-                render_fn = local_scope.get("render", None)
-                if callable(render_fn):
-                    dynamic_panels[f"script:{panel_title}"] = RuntimePanel(
-                        panel_title, render_fn
-                    )
-            except Exception as e:
-                AppLogger.get().error(f"❌ Script panel '{name}' failed to load: {e}")
+        editor,tab = self.editors[self.script_to_run]
+        local_scope = self.scope.copy()
+        try:
+            exec(tab.content, local_scope)
+            panel_title = local_scope.get("panel_title", self.script_to_run)
+            render_fn = local_scope.get("render", None)
+            if callable(render_fn):
+                dynamic_panels[f"script:{panel_title}"] = RuntimePanel(
+                    panel_title, render_fn
+                )
+        except Exception as e:
+            AppLogger.get().error(
+                f"❌ Script panel '{self.script_to_run}' failed to load: {e}"
+            )
         self.runtime_panels = dynamic_panels

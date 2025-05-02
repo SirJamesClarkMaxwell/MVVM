@@ -31,6 +31,23 @@
     "description": "Run active script",
     "enable_threading": false
   },
+  {
+    "id": "Reload Script",
+    "keys": ["Ctrl+Shift+R"],
+    "category": "Dev-Tools",
+    "context": ["Development"],
+    "description": "Reload current script",
+    "enable_threading": false
+  },
+
+  {
+    "id": "Reload and Run Script",
+    "keys": ["Ctrl+Alt+R"],
+    "category": "Dev-Tools",
+    "context": ["Development"],
+    "description": "Reload and Run current script",
+    "enable_threading": false
+  },
 
   {
     "id": "App Shutdown",
