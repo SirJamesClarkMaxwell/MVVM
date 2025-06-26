@@ -1,7 +1,7 @@
 
-# 🧪 Python MVVM ImGui Template
+# 🧪 Python MVP ImGui Template
 
-A modern, minimal Python MVVM (Model-View-Presenter) application template using
+A modern, minimal Python MVP (Model-View-Presenter) application template using
 [imgui_bundle](https://github.com/pthom/imgui_bundle) for GUI rendering.
 
 ---
@@ -73,7 +73,7 @@ To add a new module:
 
 1. Create a data model in `data/`
 2. Implement business logic in `models/`
-3. Write a ViewModel in `viewmodels/`
+3. Write a Presenter in `presenters/`
 4. Create a Panel view in `views/`
 5. Register it inside `App.setup_panels()`
 
@@ -81,7 +81,7 @@ To add a new module:
 
 ## 🧠 Design Philosophy
 
-- Separation of concerns (MVVM)
+- Separation of concerns (MVP)
 - Easy to extend with new panels
 - Async-safe design
 - Clean and modular Python
