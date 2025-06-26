@@ -9,11 +9,12 @@ from src.core.shortcuts import Shortcut, ShortcutBinding
 from src.core.shortcuts import ShortcutManager, ShortcutRegistry, ShortcutContext
 
 
-class ShortcutViewModel:
+class ShortcutPresenter:
 
     def __init__(
         self,
         app,
+        data=None,
         config_path: str = ".\src\config\default_shortcuts.json",
     ):
         self.shortcut_manager = ShortcutManager(ShortcutContext())
@@ -22,7 +23,7 @@ class ShortcutViewModel:
         self._pending_changes: List[Shortcut] = []
         # self.shortcut_registry.register(self.load_from_file(config_path))
         self.app = app
-        AppLogger.get().info("Initialized Shortcut ViewModel")
+        AppLogger.get().info("Initialized Shortcut Presenter")
         # AppLogger.get().info(f"Loaded shortcuts from {config_path}")
 
     def bind_shortcut(self,to_bind:List[Shortcut]|Shortcut,bindings:List[ShortcutBinding]|ShortcutBinding) -> None:
@@ -96,7 +97,7 @@ class ShortcutViewModel:
         conflicts = self.shortcut_registry.find_conflicts(updated)
         if conflicts:
             AppLogger.get().info(
-                f"[ShortcutViewModel] Conflict detected for: {updated.keys} in {updated.context}")
+                f"[ShortcutPresenter] Conflict detected for: {updated.keys} in {updated.context}")
             return False
 
         # Replace in local list
@@ -136,7 +137,7 @@ class ShortcutViewModel:
             AppLogger.get().info(f"Loaded {len(new_shortcuts)} new shortcuts from {path}")
             return new_shortcuts
         except OSError as e:
-            AppLogger.get().error(f"[ShortcutViewModel] Import failed: {e}")
+            AppLogger.get().error(f"[ShortcutPresenter] Import failed: {e}")
             return None
 
     def export_shortcuts(self, path: str) -> None:
@@ -145,7 +146,7 @@ class ShortcutViewModel:
                 raise OSError(f"Invalid directory: {os.path.dirname(path)}")
             ShortcutManager.save_to_file(path, self.shortcut_registry.list_all())
         except OSError as e:
-            AppLogger.get().error(f"[ShortcutViewModel] Export failed: {e}")
+            AppLogger.get().error(f"[ShortcutPresenter] Export failed: {e}")
             raise
 
     def reset_to_defaults(self)->None:

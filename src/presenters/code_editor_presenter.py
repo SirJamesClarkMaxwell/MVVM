@@ -29,10 +29,10 @@ class EditorUI:
         self.editor.set_text(content)
 
 
-class CodeEditorViewModel:
-    def __init__(self, app):
-        self.model =  CodeEditorModel()
-        self.data =  CodeEditorData()
+class CodeEditorPresenter:
+    def __init__(self, data ,app):
+        self.model:CodeEditorModel =  CodeEditorModel()
+        self.data:CodeEditorData =  data
         self.editors: dict[str, tuple[EditorUI, ScriptTab]] = {}
         self.pending_closes = []  # queue of editor names pending confirmation
         self.confirming_close_name = None

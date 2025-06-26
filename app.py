@@ -7,7 +7,7 @@ from imgui_bundle import hello_imgui, imgui
 from core import *
 from data import *
 from models import *
-from viewmodels import *
+from presenters import *
 from views import *
 
 
@@ -29,14 +29,13 @@ class App:
         self.file_dialog = FileDialogController(self)
         self.project_path = os.path.abspath(os.curdir)
 
+        self.setup_panels()
+        self.create_dockable_windows()
+        self.initialize_app_state()
+
     def initialize(self):
         AppLogger.get().info("Initializing App")
 
-        self.setup_panels()
-        self.create_dockable_windows()
-
-        # ✅ Automatically load live_plot.py into DevTools
-        self.initialize_app_state()
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
         return runner_params
@@ -46,23 +45,32 @@ class App:
         self.register_panel(
             name="Calculator",
             view_cls=CalculatorPanel,
-            viewmodel_cls=CalculatorViewModel,
-        )
-        self.register_panel(
-            name="DevTools", view_cls=CodeEditorPanel, viewmodel_cls=CodeEditorViewModel
-        )
-        self.register_panel(
-            name="Terminal", view_cls=TerminalPanel, viewmodel_cls=TerminalViewModel
+            presenter_cls=CalculatorPresenter,
+            data_cls=CalculatorData,
         )
 
-        shortcutViewModel = ShortcutViewModel(self)
+        self.register_panel(
+            name="DevTools",
+            view_cls=CodeEditorPanel,
+            presenter_cls=CodeEditorPresenter,
+            data_cls=CodeEditorData,
+        )
+        self.register_panel(
+            name="Terminal",
+            view_cls=TerminalPanel,
+            presenter_cls=TerminalPresenter,
+            data_cls=TerminalData,
+        )
+
+        shortcutPresenter = ShortcutPresenter(data=None, app=self)
         self.register_panel(
             name="Settings",
             view_cls=SettingsPanel,
-            viewmodel_cls=SettingsViewModel,
-            viewmodel_kwargs={"shortcut_viewmodel": shortcutViewModel},
+            presenter_cls=SettingsPresenter,
+            data_cls=AppSettings,
+            presenter_kwargs={"shortcut_presenter": shortcutPresenter},
             view_kwargs={
-                "shortcut_viewmodel": shortcutViewModel
+                "shortcut_presenter": shortcutPresenter
             },  # Pass to SettingsPanel
         )
 
@@ -84,7 +92,7 @@ class App:
         try:
             with open(path, encoding="utf8") as f:
                 content = f.read()
-            editor_vm: CodeEditorViewModel = self.vm_store["DevTools"]
+            editor_vm: CodeEditorPresenter = self.vm_store["DevTools"]
             editor_vm.open_script(path, content)
             AppLogger.get().info(f"📂 Opened in editor: {path}")
         except OSError as e:
@@ -113,7 +121,7 @@ class App:
 
         if keys and (self.last_shortcut_frame != imgui.get_frame_count()):
             self.last_shortcut_frame = imgui.get_frame_count()
-            self.vm_store["Settings"].shortcut_viewmodel.handle_shortcut(keys)
+            self.vm_store["Settings"].shortcut_presenter.handle_shortcut(keys)
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
@@ -148,11 +156,12 @@ class App:
         self,
         name: str,
         view_cls,
-        viewmodel_cls,
+        presenter_cls,
+        data_cls=None,
         view_args: List[Any] | None = None,
-        viewmodel_args: List[Any] | None = None,
+        presenter_args: List[Any] | None = None,
         view_kwargs: dict[str, Any] | None = None,
-        viewmodel_kwargs: dict[str, Any] | None = None,
+        presenter_kwargs: dict[str, Any] | None = None,
     ):
         AppLogger.get().debug(f"Registering Panel: {name} with {view_cls.__name__}")
         if name in self.panels:
@@ -160,10 +169,13 @@ class App:
                 f"Panel '{name}' already exists. Skipping registration."
             )
             return
-        vm = viewmodel_cls(
+        if data_cls is not None:
+            self.application_data[name] = data_cls()
+        vm = presenter_cls(
+            self.application_data[name],
             self,
-            *(viewmodel_args if viewmodel_args is not None else []),
-            **(viewmodel_kwargs if viewmodel_kwargs is not None else {}),
+            *(presenter_args if presenter_args is not None else []),
+            **(presenter_kwargs if presenter_kwargs is not None else {}),
         )
         panel = view_cls(
             vm,
@@ -198,15 +210,15 @@ class App:
 
     def _shortcuts_initialization(self) -> None:
         AppLogger.get().info("Initializing Shortcut")
-        settings_viewmodel = self.vm_store.get("Settings")
-        if not settings_viewmodel:
-            AppLogger.get().warning("There is no Settings ViewModel")
+        settings_presenter = self.vm_store.get("Settings")
+        if not settings_presenter:
+            AppLogger.get().warning("There is no Settings Presenter")
             return
 
-        shortcut_viewmodel = getattr(settings_viewmodel, "shortcut_viewmodel", None)
-        if not shortcut_viewmodel:
+        shortcut_presenter = getattr(settings_presenter, "shortcut_presenter", None)
+        if not shortcut_presenter:
             AppLogger.get().warning(
-                "Settings ViewModel does not have a shortcut_viewmodel"
+                "Settings Presenter does not have a shortcut_presenter"
             )
             return
 
@@ -214,15 +226,14 @@ class App:
         filepath = os.path.join(cwd, ".\src\config\default_shortcuts.json")
 
         try:
-            loaded_shortcuts = shortcut_viewmodel.load_from_file(filepath)
+            loaded_shortcuts = shortcut_presenter.load_from_file(filepath)
             bindings = create_global_shortcut_bindings(self)
             bindings += create_dev_tool_shortcut_binding(self)
             loaded_shortcuts.sort()
             bindings.sort()
             for shortcut,bind in zip(loaded_shortcuts,bindings):
-                shortcut_viewmodel.bind_shortcut(shortcut, bind)
-                shortcut_viewmodel.shortcut_registry.register(shortcut)
-            # shortcut_viewmodel.bind_shortcuts(loaded_shortcuts)
+                shortcut_presenter.bind_shortcut(shortcut, bind)
+                shortcut_presenter.shortcut_registry.register(shortcut)
         except OSError as e:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
 
@@ -252,6 +263,7 @@ class App:
 
     def set_context(self,context:str)->None:
         AppLogger.get().debug(f"New context {context}")
-        self.vm_store["Settings"].shortcut_viewmodel.set_context(context)
+        self.vm_store["Settings"].shortcut_presenter.set_context(context)
+
     def get_context(self)->str:
-        return self.vm_store["Settings"].shortcut_viewmodel.get_context()
+        return self.vm_store["Settings"].shortcut_presenter.get_context()

@@ -1,7 +1,5 @@
 from imgui_bundle import imgui, imgui_ctx
 
-from src.viewmodels.code_editor_viewmodel import CodeEditorViewModel
-
 try:
     from imgui_bundle import imgui_color_text_edit
 except ImportError:
@@ -15,7 +13,8 @@ from src.views import Panel
 
 
 class CodeEditorPanel(Panel):
-    def __init__(self, view_model:CodeEditorViewModel):
+
+    def __init__(self, view_model):
         super().__init__(view_model)
 
     def render(self):

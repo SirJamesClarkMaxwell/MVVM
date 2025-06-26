@@ -1,16 +1,16 @@
 
 # 🧪 Python MVVM ImGui Template
 
-A modern, minimal Python MVVM (Model-View-ViewModel) application template using
+A modern, minimal Python MVVM (Model-View-Presenter) application template using
 [imgui_bundle](https://github.com/pthom/imgui_bundle) for GUI rendering.
 
 ---
 
 ## 🚀 Features
 
-- ✨ Clean MVVM architecture
+- ✨ Clean MVP architecture
 - 📊 Example: interactive calculator panel
-- 🔍 Data modeling with [`attrs`](https://www.attrs.org/)
+- 🔍 Data modeling with [`dataclass`](https://www.attrs.org/)
 - 🧵 Background processing with thread pool
 - 📁 File dialog and CSV support
 - 🧱 ImGui docking and multi-panel layout
@@ -47,7 +47,7 @@ Make sure you're in the project root directory, and the virtual environment (if 
 ├── main.py                  # App entry point
 ├── data/                    # Holds global data
 ├── models/                  # Business logic
-├── viewmodels/              # binds panel and logic
+├── presenters/              # binds panel and logic
 ├── views/
 ├── utils/
 │   ├── file_dialog.py       # File dialog controller

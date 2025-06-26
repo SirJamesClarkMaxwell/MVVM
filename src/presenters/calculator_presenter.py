@@ -3,11 +3,11 @@ from src.data.calculator_data import CalculatorData
 from src.models.calculator_model import CalculatorModel
 
 
-class CalculatorViewModel:
-    def __init__(self, app,*args,**kwargs) -> None:
+class CalculatorPresenter:
+    def __init__(self,data, app=None,*args,**kwargs) -> None:
         self.model: CalculatorModel = CalculatorModel()
-        self.data: CalculatorData = CalculatorData()
-        self.app = app
+        self.data: CalculatorData = data
+        self.app = app 
         self.data.result = 0.0
 
     def compute(self):

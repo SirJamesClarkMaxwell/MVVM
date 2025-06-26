@@ -25,9 +25,9 @@ ALL_THEMES = [
 ALL_THEMES_NAMES = [theme.name for theme in ALL_THEMES]
 
 class SettingsPanel(Panel):
-    def __init__(self, view_model, shortcut_viewmodel):
+    def __init__(self, view_model, shortcut_presenter):
         super().__init__(view_model)
-        self.shortcut_viewmodel = shortcut_viewmodel
+        self.shortcut_presenter = shortcut_presenter
         self.font_size = 1.4  # Default global scale for font size
         self.preview_font_size = self.font_size
         self.current_theme_idx = ALL_THEMES_NAMES.index("photoshop_style")
@@ -65,12 +65,11 @@ class SettingsPanel(Panel):
                 hello_imgui.apply_theme(ALL_THEMES[self.current_theme_idx])
             imgui.tree_pop()
         if imgui.tree_node("Shortcut Settings"):
-            shortcut_vm = self.shortcut_viewmodel
+            shortcut_vm = self.shortcut_presenter
             self.draw_shortcut_settings_panel(shortcut_vm)
             imgui.tree_pop()
 
     def draw_shortcut_settings_panel(self,shortcut_vm):
-
 
         if imgui.button("Save Changes"):
             shortcut_vm.commit_changes()
@@ -90,7 +89,7 @@ class SettingsPanel(Panel):
         categorized = shortcut_vm.get_shortcuts_by_category()
 
         for category, shortcuts in categorized.items():
-            # FIXME: Fix problem with tree node, shortcuts per category should be in one tree node 
+            # FIXME: Fix problem with tree node, shortcuts per category should be in one tree node
             if imgui.collapsing_header(category, flags=imgui.TreeNodeFlags_.default_open):
                 if imgui.begin_table(f"Table_{category}", 3,imgui.TableFlags_.borders|imgui.TableFlags_.row_bg|imgui.TableFlags_.resizable):#, imgui.TABLE_BORDERS | imgui.TABLE_ROW_BACKGROUND):
                     imgui.table_setup_column("Action")
@@ -121,4 +120,3 @@ class SettingsPanel(Panel):
                         imgui.text(sc.description)
 
                     imgui.end_table()
-

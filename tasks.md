@@ -1,12 +1,11 @@
 to-do:
 
-1) Move all data into ApplicationData class
-2) Menu bar
-3) Proper documenation with local website
-4)  Add file type recognition <!-- Partially done-->****
-5) add possiblibity to chaning shortcuts via keybord
-6) update trello board
-7) add docs for this module, with explonation how to define new shortcuts (long term task)
+1) Menu bar
+2) Proper documenation with local website
+3) add possiblibity to chaning shortcuts via keybord
+4) update trello board
+5) Add file type recognition <!-- Partially done-->****
+6) add docs for this module, with explonation how to define new shortcuts (long term task)
 
 done: 
 1) Adding buttons in Dev-Tool
@@ -22,3 +21,4 @@ done:
       5) reloading current scirpt [ x ]
       6) reload and run current script [ x ]
    2) Fix in Settings panel problems with names of tree entries [ x ]
+4) Move all data into ApplicationData class
