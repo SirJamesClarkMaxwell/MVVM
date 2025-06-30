@@ -6,6 +6,7 @@ class Panel(ABC):
 
     def __init__(self, view_model):
         self.view_model = view_model
+        self.render_panel = True
 
     @property
     def app(self)->Any:
@@ -15,4 +16,3 @@ class Panel(ABC):
     def render(self):
         """Render the panel's UI."""
         pass
-

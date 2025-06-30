@@ -14,11 +14,6 @@ from views import *
 class App:
     _instance = None
 
-    @classmethod
-    def get(cls):
-        if not cls._instance:
-            cls._instance = App()
-        return cls._instance
     def __init__(self):
         App._instance = self
         self.panels: dict[str, Panel] = {}
@@ -28,17 +23,42 @@ class App:
         self.application_data = ApplicationData()
         self.file_dialog = FileDialogController(self)
         self.project_path = os.path.abspath(os.curdir)
+        self._running = True
+        self._runner_params = self.initialize()
+        self.run_function = self._run
+        hello_imgui.manual_render.setup_from_runner_params(self._runner_params)
 
+    def initialize(self):
+        AppLogger.get().info("Initializing App")
         self.setup_panels()
         self.create_dockable_windows()
         self.initialize_app_state()
 
-    def initialize(self):
-        AppLogger.get().info("Initializing App")
-
         runner_params = self.create_runner_params()
         runner_params.docking_params.dockable_windows = self.dockable_windows
+        runner_params.imgui_window_params.default_imgui_window_type = (
+            hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
+            | hello_imgui.DefaultImGuiWindowType.provide_full_screen_window
+        )
         return runner_params
+
+    def run(self) -> None:
+        while self._running:
+            # self.handle_shortcuts()
+            hello_imgui.manual_render.render()
+
+            completed_tasks = self.thread_pool.get_completed()
+            for task in completed_tasks:
+                result = task.result()
+                if result is not None:
+                    AppLogger.get().info(f"Finished task {task.label}")
+
+            self._running = not hello_imgui.get_runner_params().app_shall_exit
+
+    def _run(self) -> None:
+        self.file_dialog.render()
+        for panel in self.panels.values():
+            panel.render()
 
     def setup_panels(self):
         AppLogger.get().debug("Setting up panels")
@@ -48,7 +68,8 @@ class App:
             presenter_cls=CalculatorPresenter,
             data_cls=CalculatorData,
         )
-
+        """
+        
         self.register_panel(
             name="DevTools",
             view_cls=CodeEditorPanel,
@@ -74,19 +95,11 @@ class App:
             },  # Pass to SettingsPanel
         )
 
-    def render_panel(self, name):
-        self.handle_shortcuts()
-        self.file_dialog.render()
-        for label, panel in self.panels.items():
-            if label == name:
-                panel.render()
-                break
+        """
 
-        completed_tasks = self.thread_pool.get_completed()
-        for task in completed_tasks:
-            result = task.result()
-            if result is not None:
-                AppLogger.get().info(f"Finished task {task.label}")
+    def render_panel(self, name: str, panel: Panel):
+        if panel.render_panel:
+            panel.render()
 
     def on_file_selected(self, path: str):
         try:
@@ -125,8 +138,8 @@ class App:
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
-        for label in self.panels.keys():
-            self.add_dockable_window_for_panel(label)
+        for name, panel in self.panels.items():
+            self.add_dockable_window_for_panel(name, panel)
 
         log_window = hello_imgui.DockableWindow()
         log_window.label = "Logs"
@@ -134,21 +147,24 @@ class App:
         log_window.gui_function = hello_imgui.log_gui
         self.dockable_windows.append(log_window)
 
-    def add_dockable_window_for_panel(self, label):
+    def add_dockable_window_for_panel(self, name: str, panel: Panel):
         window = hello_imgui.DockableWindow()
-        window.label = label
+        window.label = name
         window.dock_space_name = "MainDockSpace"
-        window.gui_function = lambda label=label: self.render_panel(label)
+        window.gui_function = lambda name=name: self.render_panel(name,panel)
         self.dockable_windows.append(window)
 
     def create_runner_params(self):
         AppLogger.get().debug("Creating runner params")
         params = hello_imgui.RunnerParams()
         params.app_window_params.window_title = "MVVM Paradise"
-        params.imgui_window_params.enable_viewports = True
+        params.app_window_params.restore_previous_geometry = True
+
         params.imgui_window_params.default_imgui_window_type = (
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
         )
+        params.imgui_window_params.show_menu_bar = True
+        params.imgui_window_params.enable_viewports = True
 
         return params
 
@@ -192,6 +208,7 @@ class App:
 
     def _scripting_initialization(self) -> None:
         AppLogger.get().info("Initializing Scripting")
+        return
         try:
             editor_vm = self.vm_store["DevTools"]
             if not editor_vm:
@@ -256,6 +273,7 @@ class App:
         self.shutdown()
 
     def shutdown(self):
+        hello_imgui.manual_render.tear_down()
         sys.exit(1)
 
     def get_project_path(self) -> str:
