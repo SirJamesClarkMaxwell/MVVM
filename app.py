@@ -2,7 +2,7 @@ import os, sys
 from typing import Any, List, Self
 from webbrowser import get
 
-from imgui_bundle import hello_imgui, imgui
+from imgui_bundle import ImVec4, hello_imgui, imgui
 
 from core import *
 from data import *
@@ -35,11 +35,7 @@ class App:
         self.initialize_app_state()
 
         runner_params = self.create_runner_params()
-        runner_params.docking_params.dockable_windows = self.dockable_windows
-        runner_params.imgui_window_params.default_imgui_window_type = (
-            hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
-            | hello_imgui.DefaultImGuiWindowType.provide_full_screen_window
-        )
+
         return runner_params
 
     def run(self) -> None:
@@ -56,6 +52,8 @@ class App:
             self._running = not hello_imgui.get_runner_params().app_shall_exit
 
     def _run(self) -> None:
+        if imgui.begin("tab bar"):
+            imgui.end()
         self.file_dialog.render()
         for panel in self.panels.values():
             panel.render()
@@ -97,10 +95,25 @@ class App:
 
         """
 
-    def render_panel(self, name: str, panel: Panel):
+    def render_panel(self, panel: Panel):
         if panel.render_panel:
             panel.render()
 
+    def show_menus(self):
+        if imgui.begin_menu("Application"):
+            _,quit_clicked = imgui.menu_item("Quit","ctrl+shift+w",False)
+            if quit_clicked:
+                AppLogger.get().info("App is closing")
+                hello_imgui.get_runner_params().app_shall_exit = True
+            imgui.end_menu()
+
+        if imgui.begin_menu("Views"):
+            for name,panel in self.panels.items():
+                _,clicked = imgui.menu_item(f"{name}","",False)
+                if clicked:
+                    panel.render_panel = not panel.render_panel
+            imgui.end_menu()
+    """
     def on_file_selected(self, path: str):
         try:
             with open(path, encoding="utf8") as f:
@@ -110,6 +123,7 @@ class App:
             AppLogger.get().info(f"📂 Opened in editor: {path}")
         except OSError as e:
             AppLogger.get().error(f"Failed to open {path}: {e}")
+    """
 
     def handle_shortcuts(self):
         io = imgui.get_io()
@@ -151,20 +165,32 @@ class App:
         window = hello_imgui.DockableWindow()
         window.label = name
         window.dock_space_name = "MainDockSpace"
-        window.gui_function = lambda name=name: self.render_panel(name,panel)
+        window.gui_function = lambda name=name: self.render_panel(panel)
         self.dockable_windows.append(window)
 
     def create_runner_params(self):
         AppLogger.get().debug("Creating runner params")
         params = hello_imgui.RunnerParams()
         params.app_window_params.window_title = "MVVM Paradise"
+        # params.app_window_params.borderless = True
+        params.app_window_params.borderless_highlight_color = ImVec4(0,0,0.11,1)
         params.app_window_params.restore_previous_geometry = True
+        params.app_window_params.window_geometry.full_screen_mode = (
+            hello_imgui.FullScreenMode.full_monitor_work_area
+        )
 
+        # params.imgui_window_params.show_menu_bar = True
+        params.imgui_window_params.show_menu_bar = True
+        params.imgui_window_params.show_menu_app = False
+        params.imgui_window_params.show_menu_view = False
+        params.callbacks.show_menus = self.show_menus
+
+        params.imgui_window_params.enable_viewports = True
+        params.docking_params.dockable_windows = self.dockable_windows
         params.imgui_window_params.default_imgui_window_type = (
             hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
+            | hello_imgui.DefaultImGuiWindowType.provide_full_screen_window
         )
-        params.imgui_window_params.show_menu_bar = True
-        params.imgui_window_params.enable_viewports = True
 
         return params
 
