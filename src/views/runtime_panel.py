@@ -19,5 +19,3 @@ class RuntimePanel:
             imgui.begin(self.title)
             AppLogger.get().error(f"❌ Error: {e}")
             imgui.end()
-            AppLogger.get().error(f"❌ Error: {e}")
-            imgui.end()

@@ -16,8 +16,8 @@ class App:
 
     def __init__(self):
         App._instance = self
-        self.panels: dict[str, Panel] = {}
-        self.dockable_windows = []
+        self.__rendering_panels: dict[str, Panel] = {}
+        self.dockable_windows: List[hello_imgui.DockableWindow] = []
         self.vm_store: dict[str:Any] = {}  # optional: {"calculator": vm, ...}
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
@@ -25,7 +25,6 @@ class App:
         self.project_path = os.path.abspath(os.curdir)
         self._running = True
         self._runner_params = self.initialize()
-        self.run_function = self._run
         hello_imgui.manual_render.setup_from_runner_params(self._runner_params)
 
     def initialize(self):
@@ -40,7 +39,8 @@ class App:
 
     def run(self) -> None:
         while self._running:
-            # self.handle_shortcuts()
+            self.handle_shortcuts()
+            # NOTE: here is running self._render function. Handled by hello_imgui
             hello_imgui.manual_render.render()
 
             completed_tasks = self.thread_pool.get_completed()
@@ -50,13 +50,19 @@ class App:
                     AppLogger.get().info(f"Finished task {task.label}")
 
             self._running = not hello_imgui.get_runner_params().app_shall_exit
-
-    def _run(self) -> None:
-        if imgui.begin("tab bar"):
-            imgui.end()
+    """
+    def render(self) -> None:
         self.file_dialog.render()
-        for panel in self.panels.values():
-            panel.render()
+        for name,panel in self.panels.items():
+            if panel.visible:
+                continue
+
+            p_open = [panel.visible]
+            if imgui.begin(name,p_open):    
+                panel.visible = p_open[0]
+                panel.render()
+                imgui.end()
+    """
 
     def setup_panels(self):
         AppLogger.get().debug("Setting up panels")
@@ -66,14 +72,14 @@ class App:
             presenter_cls=CalculatorPresenter,
             data_cls=CalculatorData,
         )
-        """
-        
+
         self.register_panel(
             name="DevTools",
             view_cls=CodeEditorPanel,
             presenter_cls=CodeEditorPresenter,
             data_cls=CodeEditorData,
         )
+
         self.register_panel(
             name="Terminal",
             view_cls=TerminalPanel,
@@ -93,11 +99,12 @@ class App:
             },  # Pass to SettingsPanel
         )
 
-        """
-
-    def render_panel(self, panel: Panel):
-        if panel.render_panel:
+    def render_panel(self, name:str,panel: Panel):
+        if not panel.visible:
+            return 
+        if  imgui.begin(name,panel.visible):
             panel.render()
+            imgui.end()
 
     def show_menus(self):
         if imgui.begin_menu("Application"):
@@ -108,22 +115,12 @@ class App:
             imgui.end_menu()
 
         if imgui.begin_menu("Views"):
-            for name,panel in self.panels.items():
-                _,clicked = imgui.menu_item(f"{name}","",False)
+            for name,panel in self.__rendering_panels.items():
+                visible = panel.visible
+                clicked, visible = imgui.menu_item(f"{name}", "",visible)#,True)#, panel.visible)
                 if clicked:
-                    panel.render_panel = not panel.render_panel
+                    panel.visible = visible#not panel.visible
             imgui.end_menu()
-    """
-    def on_file_selected(self, path: str):
-        try:
-            with open(path, encoding="utf8") as f:
-                content = f.read()
-            editor_vm: CodeEditorPresenter = self.vm_store["DevTools"]
-            editor_vm.open_script(path, content)
-            AppLogger.get().info(f"📂 Opened in editor: {path}")
-        except OSError as e:
-            AppLogger.get().error(f"Failed to open {path}: {e}")
-    """
 
     def handle_shortcuts(self):
         io = imgui.get_io()
@@ -152,7 +149,7 @@ class App:
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
-        for name, panel in self.panels.items():
+        for name, panel in self.__rendering_panels.items():
             self.add_dockable_window_for_panel(name, panel)
 
         log_window = hello_imgui.DockableWindow()
@@ -165,7 +162,7 @@ class App:
         window = hello_imgui.DockableWindow()
         window.label = name
         window.dock_space_name = "MainDockSpace"
-        window.gui_function = lambda name=name: self.render_panel(panel)
+        window.gui_function = lambda name=name: self.render_panel(name,panel)
         self.dockable_windows.append(window)
 
     def create_runner_params(self):
@@ -206,7 +203,7 @@ class App:
         presenter_kwargs: dict[str, Any] | None = None,
     ):
         AppLogger.get().debug(f"Registering Panel: {name} with {view_cls.__name__}")
-        if name in self.panels:
+        if name in self.__rendering_panels:
             AppLogger.get().warning(
                 f"Panel '{name}' already exists. Skipping registration."
             )
@@ -225,7 +222,7 @@ class App:
             **(view_kwargs if view_kwargs is not None else {}),
         )
         self.vm_store[name] = vm
-        self.panels[name] = panel
+        self.__rendering_panels[name] = panel
 
     def initialize_app_state(self):
         AppLogger.get().info("Initializing App state")
@@ -234,7 +231,6 @@ class App:
 
     def _scripting_initialization(self) -> None:
         AppLogger.get().info("Initializing Scripting")
-        return
         try:
             editor_vm = self.vm_store["DevTools"]
             if not editor_vm:

@@ -119,7 +119,7 @@ class CodeEditorPanel(Panel):
             # Use full unique ID but show a user-friendly label
 
             window_id = f"{name}##{tab.filename}"
-            opened, visible = imgui.begin(window_id, True)
+            opened, visible = imgui.begin(window_id, self.visible)
             if visible:
                 self.view_model.data.current_tab_name = name
                 imgui.text(f"Editing: {name}")

@@ -6,7 +6,7 @@ class Panel(ABC):
 
     def __init__(self, view_model):
         self.view_model = view_model
-        self.render_panel = True
+        self.visible = True
 
     @property
     def app(self)->Any:
