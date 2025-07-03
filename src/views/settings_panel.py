@@ -26,7 +26,7 @@ ALL_THEMES_NAMES = [theme.name for theme in ALL_THEMES]
 
 class SettingsPanel(Panel):
     def __init__(self, view_model, shortcut_presenter):
-        super().__init__(view_model)
+        super().__init__(view_model,"Settings")
         self.shortcut_presenter = shortcut_presenter
         self.font_size = 1.4  # Default global scale for font size
         self.preview_font_size = self.font_size

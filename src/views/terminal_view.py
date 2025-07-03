@@ -3,7 +3,7 @@ from views import Panel
 
 class TerminalPanel(Panel):
     def __init__(self, view_model):
-        super().__init__(view_model)
+        super().__init__(view_model,"Settings")
 
     def render(self):
         avail = imgui.get_content_region_avail()

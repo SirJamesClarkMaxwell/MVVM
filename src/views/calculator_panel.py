@@ -3,6 +3,8 @@ from views import Panel
 
 
 class CalculatorPanel(Panel):
+    def __init__(self, view_model):
+        super().__init__(view_model, "Calculator")
     def render(self):
         if imgui.begin("Calculator",self.visible):
             changed_a, self.view_model.data.a = imgui.input_float("A", self.view_model.data.a)

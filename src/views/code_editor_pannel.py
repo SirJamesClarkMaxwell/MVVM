@@ -15,7 +15,7 @@ from src.views import Panel
 class CodeEditorPanel(Panel):
 
     def __init__(self, view_model):
-        super().__init__(view_model)
+        super().__init__(view_model,"Dev-Tools")
 
     def render(self):
         if imgui.is_window_focused():

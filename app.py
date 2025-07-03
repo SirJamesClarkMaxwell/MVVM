@@ -16,7 +16,7 @@ class App:
 
     def __init__(self):
         App._instance = self
-        self.__rendering_panels: dict[str, Panel] = {}
+        self.panels: dict[str, Panel] = {}
         self.dockable_windows: List[hello_imgui.DockableWindow] = []
         self.vm_store: dict[str:Any] = {}  # optional: {"calculator": vm, ...}
         self.thread_pool = ThreadPool()
@@ -101,9 +101,12 @@ class App:
 
     def render_panel(self, name:str,panel: Panel):
         if not panel.visible:
-            return 
-        if  imgui.begin(name,panel.visible):
-            panel.render()
+            return  # skip hidden panels
+        p_open = [True]  # pointer for ImGui (initial True since panel is being rendered)
+        opened = imgui.begin(name, True)      # begin window with closable flag
+        panel.visible = p_open[0]              # update visibility in case 'X' was clicked
+        if opened: 
+            panel.render()                     # draw contents if window is open
             imgui.end()
 
     def show_menus(self):
@@ -115,12 +118,25 @@ class App:
             imgui.end_menu()
 
         if imgui.begin_menu("Views"):
-            for name,panel in self.__rendering_panels.items():
+            for name, panel in self.panels.items():
+                if name == "DevTolls":
+                    continue
                 visible = panel.visible
-                clicked, visible = imgui.menu_item(f"{name}", "",visible)#,True)#, panel.visible)
+                clicked, visible = imgui.menu_item(
+                    f"{name}", "", visible)
                 if clicked:
+                    AppLogger.get().debug(f"Panel {name} visibility is set to {panel.visible} ")
                     panel.visible = visible#not panel.visible
+                
             imgui.end_menu()
+            if imgui.begin_menu("DevTools"):  # only shown if DevTools panel is visible
+                # list all script subpanels loaded in DevTools
+                for script_panel in self.vm_store["DevTools"].open_scripts: 
+                    s_visible = script_panel.visible
+                    clicked, new_state = imgui.menu_item(script_panel.name, "", s_visible)
+                    if clicked:
+                        script_panel.visible = new_state
+                imgui.end_menu()
 
     def handle_shortcuts(self):
         io = imgui.get_io()
@@ -149,7 +165,8 @@ class App:
 
     def create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
-        for name, panel in self.__rendering_panels.items():
+        for name, panel in self.panels.items():
+            # self.dockable_windows.append(panel.window)
             self.add_dockable_window_for_panel(name, panel)
 
         log_window = hello_imgui.DockableWindow()
@@ -203,7 +220,7 @@ class App:
         presenter_kwargs: dict[str, Any] | None = None,
     ):
         AppLogger.get().debug(f"Registering Panel: {name} with {view_cls.__name__}")
-        if name in self.__rendering_panels:
+        if name in self.panels:
             AppLogger.get().warning(
                 f"Panel '{name}' already exists. Skipping registration."
             )
@@ -222,7 +239,7 @@ class App:
             **(view_kwargs if view_kwargs is not None else {}),
         )
         self.vm_store[name] = vm
-        self.__rendering_panels[name] = panel
+        self.panels[name] = panel
 
     def initialize_app_state(self):
         AppLogger.get().info("Initializing App state")
