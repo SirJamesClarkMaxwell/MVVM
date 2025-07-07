@@ -2,7 +2,7 @@ from inspect import Traceback
 import os, sys
 from typing import Any, List, Self, Type
 from webbrowser import get
-
+import json
 from imgui_bundle import ImVec4, hello_imgui, imgui
 
 from core import *
@@ -15,7 +15,7 @@ from views import *
 class App:
     _instance = None
 
-    def __init__(self):
+    def __init__(self,*args):
         App._instance = self
         self.panels: dict[str, Panel] = {}
         self.dockable_windows: List[hello_imgui.DockableWindow] = []
@@ -25,13 +25,14 @@ class App:
         self.file_dialog = FileDialogController(self)
         self.__project_path = os.path.abspath(os.curdir)
         self._running = True
+        self.__handle_main_arguments(*args)
         self._runner_params = self.initialize()
         hello_imgui.manual_render.setup_from_runner_params(self._runner_params)
 
-    def initialize(self):
+    def initialize(self,*args,**kwargs):
         AppLogger.get().info("Initializing App")
         self.setup_panels()
-        self.initialize_app_state()
+        self.initialize_app_state(*args,**kwargs)
 
         return self.__create_runner_params()
 
@@ -83,10 +84,20 @@ class App:
 
         self.__create_dockable_windows()
 
-    def initialize_app_state(self):
+    def initialize_app_state(self,):
         AppLogger.get().info("Initializing App state")
+        self.__load_project()
         self._shortcuts_initialization()
         self._scripting_initialization()
+
+    def __handle_main_arguments(self,*args):
+        if not args:
+            return ""
+        if args:
+            it = iter(args)
+            for key in it:
+                value = next(it, None)
+                setattr(self, key.lstrip("-"), value)
 
     def __create_runner_params(self):
         AppLogger.get().debug("Creating runner params")
@@ -249,6 +260,31 @@ class App:
         except OSError as e:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
 
+    def __load_project(self):
+        project_path = getattr(self, "path", None)
+        if not project_path:
+            AppLogger.get().warning("No --path argument provided. Skipping project load.")
+            return
+
+        if not project_path.lower().endswith(".json"):
+            AppLogger.get().error(f"Project file must be a .proj file: {project_path}")
+            return
+
+        if not os.path.isfile(project_path):
+            AppLogger.get().error(f"Project file does not exist: {project_path}")
+            return
+
+        try:
+            with open(project_path, "r", encoding="utf-8") as f:     
+                project_data = json.load(f)
+                self.__load_project_from_data(project_data)
+            AppLogger.get().info(f"Loaded project from {project_path}")
+        except Exception as e:
+            AppLogger.get().error(f"Failed to load project file {project_path}: {e}")
+
+    def __load_project_from_data(self,data:Any)->None:
+        # TODO: Use project_data to initialize application state as needed
+        pass
     def save_state(self) -> None:
         # TODO : implement save_state to save the current state of the application
         AppLogger.get().info("Saving application state (stub)")
