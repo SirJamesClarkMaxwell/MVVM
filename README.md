@@ -1,5 +1,5 @@
 
-# 🧪 Python MVVM ImGui Template
+# 🧪 Python MVP ImGui Template
 
 A modern, minimal Python MVP (Model-View-Presenter) application template using
 [imgui_bundle](https://github.com/pthom/imgui_bundle) for GUI rendering.
