@@ -114,7 +114,8 @@ class ShortcutPresenter:
 
     def set_context(self,context:str)->None:
         self.shortcut_manager.context_service.set_active_context(context=context)
-    def get_context(self)->str:
+    @property 
+    def context(self)->str:
         return self.shortcut_manager.context_service.get_active_context()
 
     def load_from_file(self, path: str) -> Optional[List[Shortcut]]:

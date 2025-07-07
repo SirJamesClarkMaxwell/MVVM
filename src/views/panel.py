@@ -15,6 +15,7 @@ class Panel(ABC):
         self.__window.dock_space_name = "MainDockSpace"
         self.__window.gui_function = self.render
         self.__window.label = name
+        self.__window.can_be_closed = True
 
     # def set_renderer_function(self,name:str, )
     @property

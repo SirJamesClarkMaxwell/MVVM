@@ -1,5 +1,4 @@
 from .calculator_presenter import CalculatorPresenter
 from .code_editor_presenter import CodeEditorPresenter
-from .terminal_presenter import TerminalPresenter
 from .settings_presenter import SettingsPresenter
 from .shortcut_presenter import ShortcutPresenter

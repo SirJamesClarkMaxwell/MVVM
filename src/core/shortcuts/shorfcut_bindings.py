@@ -45,7 +45,10 @@ def create_global_shortcut_bindings(app:Any) -> list[ShortcutBinding]:
         AppLogger.get().error(
             "Functionality of saving Project has not been implemented yet!"
         )
-        raise NotImplementedError("This functionality has not been implemented yet!")
+        return None
+        # raise NotImplementedError("This functionality has not been implemented yet!")
+    def exit_app(app,*args,**kwargs):
+        app.running = False
 
     open_file_obj = ShortcutBinding(
         "Open File",
@@ -70,7 +73,7 @@ def create_global_shortcut_bindings(app:Any) -> list[ShortcutBinding]:
     shutdown_app = ShortcutBinding(
         "App Shutdown",
         pre_process=save_project,
-        function= lambda app, *args,**kwargs: sys.exit(1),
+        function= exit_app,
         post_process=lambda app, *args,**kwargs: None
         
     )

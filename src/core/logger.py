@@ -10,7 +10,10 @@ class AppLogger:
         self._python_logger = logging.getLogger("AppLogger")
         if not self._python_logger.hasHandlers():
             handler = logging.StreamHandler()
-            formatter = logging.Formatter("[%(levelname)s] %(message)s")
+            formatter = logging.Formatter(
+                "[%(levelname)s] %(filename)s:%(lineno)d in %(funcName)s() - %(message)s"
+            )
+
             handler.setFormatter(formatter)
             self._python_logger.addHandler(handler)
             self._python_logger.setLevel(logging.DEBUG)
@@ -35,7 +38,7 @@ class AppLogger:
 
         # Also log to standard Python logging
         log_func = getattr(self._python_logger, level.lower(), self._python_logger.info)
-        log_func(msg)
+        log_func(msg,stacklevel=3)
 
     def info(self, msg: str):
         self.log(msg, "info")

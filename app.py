@@ -1,5 +1,6 @@
+from inspect import Traceback
 import os, sys
-from typing import Any, List, Self
+from typing import Any, List, Self, Type
 from webbrowser import get
 
 from imgui_bundle import ImVec4, hello_imgui, imgui
@@ -22,7 +23,7 @@ class App:
         self.thread_pool = ThreadPool()
         self.application_data = ApplicationData()
         self.file_dialog = FileDialogController(self)
-        self.project_path = os.path.abspath(os.curdir)
+        self.__project_path = os.path.abspath(os.curdir)
         self._running = True
         self._runner_params = self.initialize()
         hello_imgui.manual_render.setup_from_runner_params(self._runner_params)
@@ -30,16 +31,13 @@ class App:
     def initialize(self):
         AppLogger.get().info("Initializing App")
         self.setup_panels()
-        self.create_dockable_windows()
         self.initialize_app_state()
 
-        runner_params = self.create_runner_params()
-
-        return runner_params
+        return self.__create_runner_params()
 
     def run(self) -> None:
         while self._running:
-            self.handle_shortcuts()
+            self.__handle_shortcuts()
             # NOTE: here is running self._render function. Handled by hello_imgui
             hello_imgui.manual_render.render()
 
@@ -48,47 +46,31 @@ class App:
                 result = task.result()
                 if result is not None:
                     AppLogger.get().info(f"Finished task {task.label}")
+            if self._running:
+                self._running = not hello_imgui.get_runner_params().app_shall_exit
 
-            self._running = not hello_imgui.get_runner_params().app_shall_exit
-    """
-    def render(self) -> None:
-        self.file_dialog.render()
-        for name,panel in self.panels.items():
-            if panel.visible:
-                continue
-
-            p_open = [panel.visible]
-            if imgui.begin(name,p_open):    
-                panel.visible = p_open[0]
-                panel.render()
-                imgui.end()
-    """
+    def shutdown(self):
+        self.save_state()
+        hello_imgui.manual_render.tear_down()
 
     def setup_panels(self):
         AppLogger.get().debug("Setting up panels")
-        self.register_panel(
+        self.__register_panel(
             name="Calculator",
             view_cls=CalculatorPanel,
             presenter_cls=CalculatorPresenter,
             data_cls=CalculatorData,
         )
 
-        self.register_panel(
+        self.__register_panel(
             name="DevTools",
             view_cls=CodeEditorPanel,
             presenter_cls=CodeEditorPresenter,
             data_cls=CodeEditorData,
         )
 
-        self.register_panel(
-            name="Terminal",
-            view_cls=TerminalPanel,
-            presenter_cls=TerminalPresenter,
-            data_cls=TerminalData,
-        )
-
         shortcutPresenter = ShortcutPresenter(data=None, app=self)
-        self.register_panel(
+        self.__register_panel(
             name="Settings",
             view_cls=SettingsPanel,
             presenter_cls=SettingsPresenter,
@@ -96,20 +78,54 @@ class App:
             presenter_kwargs={"shortcut_presenter": shortcutPresenter},
             view_kwargs={
                 "shortcut_presenter": shortcutPresenter
-            },  # Pass to SettingsPanel
+            },  
         )
 
-    def render_panel(self, name:str,panel: Panel):
-        if not panel.visible:
-            return  # skip hidden panels
-        p_open = [True]  # pointer for ImGui (initial True since panel is being rendered)
-        opened = imgui.begin(name, True)      # begin window with closable flag
-        panel.visible = p_open[0]              # update visibility in case 'X' was clicked
-        if opened: 
-            panel.render()                     # draw contents if window is open
-            imgui.end()
+        self.__create_dockable_windows()
 
-    def show_menus(self):
+    def initialize_app_state(self):
+        AppLogger.get().info("Initializing App state")
+        self._shortcuts_initialization()
+        self._scripting_initialization()
+
+    def __create_runner_params(self):
+        AppLogger.get().debug("Creating runner params")
+        params = hello_imgui.RunnerParams()
+        params.app_window_params.window_title = "MVVM Paradise"
+        # params.app_window_params.borderless = True
+        params.app_window_params.borderless_highlight_color = ImVec4(0, 0, 0.11, 1)
+        params.app_window_params.restore_previous_geometry = True
+        params.app_window_params.window_geometry.full_screen_mode = (
+            hello_imgui.FullScreenMode.full_monitor_work_area
+        )
+
+        # params.imgui_window_params.show_menu_bar = True
+        params.imgui_window_params.show_menu_bar = True
+        params.imgui_window_params.show_menu_app = False
+        params.imgui_window_params.show_menu_view = True
+        params.imgui_window_params.show_menu_app_quit = False
+
+        params.callbacks.show_menus = self.__show_menus
+
+        params.imgui_window_params.enable_viewports = True
+        params.docking_params.dockable_windows = self.dockable_windows
+        params.imgui_window_params.default_imgui_window_type = (
+            hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
+            | hello_imgui.DefaultImGuiWindowType.provide_full_screen_window
+        )
+        if os.path.exists(self.project_path + "\\MVVM_Paradise.ini"):
+            AppLogger.get().debug(
+                f"Settings UI from {self.__project_path}\\MVVM_Paradise.ini file"
+            )
+            params.ini_filename = self.__project_path + "MVVM_Paradise.ini"
+        else:
+            AppLogger.get().debug(
+                f"No UI file detected in path  {self.__project_path}/MVVM_Paradise.ini"
+            )
+
+        return params
+
+    def __show_menus(self):
         if imgui.begin_menu("Application"):
             _,quit_clicked = imgui.menu_item("Quit","ctrl+shift+w",False)
             if quit_clicked:
@@ -117,28 +133,7 @@ class App:
                 hello_imgui.get_runner_params().app_shall_exit = True
             imgui.end_menu()
 
-        if imgui.begin_menu("Views"):
-            for name, panel in self.panels.items():
-                if name == "DevTolls":
-                    continue
-                visible = panel.visible
-                clicked, visible = imgui.menu_item(
-                    f"{name}", "", visible)
-                if clicked:
-                    AppLogger.get().debug(f"Panel {name} visibility is set to {panel.visible} ")
-                    panel.visible = visible#not panel.visible
-                
-            imgui.end_menu()
-            if imgui.begin_menu("DevTools"):  # only shown if DevTools panel is visible
-                # list all script subpanels loaded in DevTools
-                for script_panel in self.vm_store["DevTools"].open_scripts: 
-                    s_visible = script_panel.visible
-                    clicked, new_state = imgui.menu_item(script_panel.name, "", s_visible)
-                    if clicked:
-                        script_panel.visible = new_state
-                imgui.end_menu()
-
-    def handle_shortcuts(self):
+    def __handle_shortcuts(self):
         io = imgui.get_io()
         keys = []
         self.last_shortcut_frame = getattr(self, "last_shortcut_frame", -1)
@@ -163,11 +158,10 @@ class App:
             self.last_shortcut_frame = imgui.get_frame_count()
             self.vm_store["Settings"].shortcut_presenter.handle_shortcut(keys)
 
-    def create_dockable_windows(self):
+    def __create_dockable_windows(self):
         AppLogger.get().debug("Creating dockable windows")
         for name, panel in self.panels.items():
-            # self.dockable_windows.append(panel.window)
-            self.add_dockable_window_for_panel(name, panel)
+            self.dockable_windows.append(panel.window)
 
         log_window = hello_imgui.DockableWindow()
         log_window.label = "Logs"
@@ -175,40 +169,7 @@ class App:
         log_window.gui_function = hello_imgui.log_gui
         self.dockable_windows.append(log_window)
 
-    def add_dockable_window_for_panel(self, name: str, panel: Panel):
-        window = hello_imgui.DockableWindow()
-        window.label = name
-        window.dock_space_name = "MainDockSpace"
-        window.gui_function = lambda name=name: self.render_panel(name,panel)
-        self.dockable_windows.append(window)
-
-    def create_runner_params(self):
-        AppLogger.get().debug("Creating runner params")
-        params = hello_imgui.RunnerParams()
-        params.app_window_params.window_title = "MVVM Paradise"
-        # params.app_window_params.borderless = True
-        params.app_window_params.borderless_highlight_color = ImVec4(0,0,0.11,1)
-        params.app_window_params.restore_previous_geometry = True
-        params.app_window_params.window_geometry.full_screen_mode = (
-            hello_imgui.FullScreenMode.full_monitor_work_area
-        )
-
-        # params.imgui_window_params.show_menu_bar = True
-        params.imgui_window_params.show_menu_bar = True
-        params.imgui_window_params.show_menu_app = False
-        params.imgui_window_params.show_menu_view = False
-        params.callbacks.show_menus = self.show_menus
-
-        params.imgui_window_params.enable_viewports = True
-        params.docking_params.dockable_windows = self.dockable_windows
-        params.imgui_window_params.default_imgui_window_type = (
-            hello_imgui.DefaultImGuiWindowType.provide_full_screen_dock_space
-            | hello_imgui.DefaultImGuiWindowType.provide_full_screen_window
-        )
-
-        return params
-
-    def register_panel(
+    def __register_panel(
         self,
         name: str,
         view_cls,
@@ -240,11 +201,6 @@ class App:
         )
         self.vm_store[name] = vm
         self.panels[name] = panel
-
-    def initialize_app_state(self):
-        AppLogger.get().info("Initializing App state")
-        self._shortcuts_initialization()
-        self._scripting_initialization()
 
     def _scripting_initialization(self) -> None:
         AppLogger.get().info("Initializing Scripting")
@@ -293,34 +249,39 @@ class App:
         except OSError as e:
             AppLogger.get().error(f"Failed to load shortcuts from {filepath}: {e}")
 
-    def close_active_window(self):
-        # TODO: implement close_active_window to remove focused panel from view
-        AppLogger.get().info("Requested to close active window (stub)")
-
     def save_state(self) -> None:
         # TODO : implement save_state to save the current state of the application
         AppLogger.get().info("Saving application state (stub)")
 
     def __enter__(self) -> Self:
-        # TODO : implement __enter__ to set up the application context
         AppLogger.get().info("Entering App context")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # TODO : implement __exit__ to set up the application context
+    def __exit__(self, 
+                exc_type:Type[BaseException]|None,
+                exc_val:Any|None,
+                exc_tb:Traceback|None):
         AppLogger.get().info("Exiting App context")
+        AppLogger.get().debug(str(exc_type))
+        AppLogger.get().debug(str(exc_val))
+        AppLogger.get().debug(str(exc_tb))
         self.shutdown()
-
-    def shutdown(self):
-        hello_imgui.manual_render.tear_down()
-        sys.exit(1)
-
-    def get_project_path(self) -> str:
-        return self.project_path
 
     def set_context(self,context:str)->None:
         AppLogger.get().debug(f"New context {context}")
         self.vm_store["Settings"].shortcut_presenter.set_context(context)
 
-    def get_context(self)->str:
-        return self.vm_store["Settings"].shortcut_presenter.get_context()
+    @property
+    def context(self)->str:
+        return self.vm_store["Settings"].shortcut_presenter.context
+
+    @property
+    def running(self)->bool:
+        return self._running
+    @running.setter
+    def running(self,run:bool)->None:
+        self._running = run
+
+    @property
+    def project_path(self) -> str:
+        return self.__project_path

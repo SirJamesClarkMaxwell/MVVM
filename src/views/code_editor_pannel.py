@@ -19,7 +19,7 @@ class CodeEditorPanel(Panel):
 
     def render(self):
         if imgui.is_window_focused():
-            ctx = self.app.get_context()
+            ctx = self.app.context
             if ctx != "Development":
                 self.app.set_context("Development")
                 AppLogger.get().debug(f"Shortcut Context has been set to Development")

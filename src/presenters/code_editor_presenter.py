@@ -18,6 +18,7 @@ class EditorUI:
         self.editor.set_show_whitespaces(False)
         self.editor.set_tab_size(4)
         self.editor.set_text(content)
+        
 
     def update_model(self) -> str:
         return self.editor.get_text()
