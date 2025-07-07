@@ -1,7 +1,7 @@
 
 # 🧪 Python MVVM ImGui Template
 
-A modern, minimal Python MVVM (Model-View-Presenter) application template using
+A modern, minimal Python MVP (Model-View-Presenter) application template using
 [imgui_bundle](https://github.com/pthom/imgui_bundle) for GUI rendering.
 
 ---
@@ -14,13 +14,22 @@ A modern, minimal Python MVVM (Model-View-Presenter) application template using
 - 🧵 Background processing with thread pool
 - 📁 File dialog and CSV support
 - 🧱 ImGui docking and multi-panel layout
+- 📂 Project loading via project specification file  
+- ⚙️ Context manager  
+- 💾 Saving and loading UI layout  
 
 ---
 
 ## 🧰 Requirements
 
 - Python ≥ 3.9
-- Recommended: use a virtual environment
+- Recommended: use a virtual environment (uv)
+---
+After you clone the repository and go to it, you should write:
+```bash
+uv venv
+uv venv exec
+```
 
 Install dependencies:
 
@@ -81,7 +90,7 @@ To add a new module:
 
 ## 🧠 Design Philosophy
 
-- Separation of concerns (MVVM)
+- Separation of concerns (MVP)
 - Easy to extend with new panels
 - Async-safe design
 - Clean and modular Python
