@@ -32,7 +32,7 @@ class App:
     def initialize(self,*args,**kwargs):
         AppLogger.get().info("Initializing App")
         self.setup_panels()
-        self.initialize_app_state(*args,**kwargs)
+        self.__initialize_app_state(*args,**kwargs)
 
         return self.__create_runner_params()
 
@@ -84,7 +84,7 @@ class App:
 
         self.__create_dockable_windows()
 
-    def initialize_app_state(self,):
+    def __initialize_app_state(self):
         AppLogger.get().info("Initializing App state")
         self.__load_project()
         self._shortcuts_initialization()
